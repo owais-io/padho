@@ -135,9 +135,11 @@ Important guidelines:
     } catch (error) {
       console.error('Error with OpenAI API:', error)
       
-      // If it's a JSON parsing error, log the raw response for debugging
+      // If it's a JSON parsing error, log the error details
       if (error instanceof SyntaxError) {
-        console.error('Failed to parse OpenAI response. Raw response:', completion?.choices[0]?.message?.content)
+        console.error('Failed to parse OpenAI response as JSON')
+        // Note: completion variable is not accessible in catch block
+        // You could store responseContent in a variable outside try block if needed
       }
       
       throw new Error('Failed to generate summary with OpenAI')
