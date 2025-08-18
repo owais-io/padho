@@ -1,3 +1,5 @@
+// next-seo.config.js
+
 const SEO = {
   title: 'Padho.net - India\'s Premier News Platform',
   description: 'Stay updated with the latest news from India. Read simplified, AI-powered summaries of important stories.',
@@ -20,7 +22,7 @@ const SEO = {
     ],
   },
   twitter: {
-    handle: '@padho_net', // Replace with your Twitter handle
+    handle: '@padho_net',
     site: '@padho_net',
     cardType: 'summary_large_image',
   },
@@ -38,7 +40,7 @@ const SEO = {
       content: 'Padho.net'
     },
     {
-      httpEquiv: 'content-language',
+      name: 'language',
       content: 'en-IN'
     },
     {

@@ -1,3 +1,5 @@
+// pages/_app.tsx
+
 import { SessionProvider } from "next-auth/react"
 import { DefaultSeo } from 'next-seo'
 import SEO from '../next-seo.config'
