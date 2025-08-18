@@ -52,11 +52,10 @@ Please provide your response as a JSON object with this structure:
 - summary: Rephrase the article in approximately 500 words. Use 3rd person format. Use simple vocabulary. Maintain a conversational, ChatGPT-like tone. Focus on how this news impacts or relates to India and Indians.
 - tldr: Array of exactly 3 key points that highlight the India connection and importance for Indian readers
 - faqs: Array of exactly 5 FAQ objects with "question" and "answer" fields that Indian readers would want to know
-- heading: Create an engaging headline that MUST mention "India" or "Indian" prominently. The headline should clearly show the India connection and appeal to Indian readers.
-- category: Maximum 3 words describing the category (prefer India-focused categories like "India Politics", "India Sports", "India Economy", etc.)
+- heading: Create an engaging headline. The headline should clearly show the India connection and appeal to Indian readers.
+- category: Maximum 3 words describing the category (prefer India-focused categories.)
 
 CRITICAL REQUIREMENTS:
-- The HEADING must include "India" or "Indian" or "Delhi" or "Mumbai" or other Indian cities/states
 - Focus the entire summary on India's perspective and how it affects Indians
 - Make the content relevant and engaging for Indian audience
 - Use simple, accessible language that Indian readers prefer
@@ -70,7 +69,6 @@ Important guidelines:
 - Create exactly 3 TLDR bullet points emphasizing India angle
 - Generate exactly 5 relevant FAQs from Indian perspective
 - Category should be maximum 3 words, preferably India-focused
-- HEADLINE IS MOST IMPORTANT: Must clearly mention India connection
 `
 
     try {
@@ -79,7 +77,7 @@ Important guidelines:
         messages: [
           {
             role: "system",
-            content: "You are a professional news summarizer for Indian readers. Always focus on India's perspective and ensure headlines mention India prominently. Respond with valid JSON only."
+            content: "You are a professional news summarizer for Indian readers. Always focus on India's perspective. Respond with valid JSON only."
           },
           {
             role: "user",
@@ -121,15 +119,15 @@ Important guidelines:
         }
       }
 
-      // Additional validation: Check if heading mentions India
+      // // Additional validation: Check if heading mentions India
       const heading = parsedResponse.heading.toLowerCase()
-      const indiaKeywords = ['india', 'indian', 'delhi', 'mumbai', 'kolkata', 'chennai', 'bangalore', 'hyderabad', 'pune', 'ahmedabad', 'modi', 'new delhi']
-      const hasIndiaConnection = indiaKeywords.some(keyword => heading.includes(keyword))
+      // const indiaKeywords = ['india', 'indian', 'delhi', 'mumbai', 'kolkata', 'chennai', 'bangalore', 'hyderabad', 'pune', 'ahmedabad', 'modi', 'new delhi']
+      // const hasIndiaConnection = indiaKeywords.some(keyword => heading.includes(keyword))
       
-      if (!hasIndiaConnection) {
-        console.warn('Heading does not mention India prominently:', parsedResponse.heading)
-        // You could optionally throw an error or modify the heading here
-      }
+      // if (!hasIndiaConnection) {
+      //   console.warn('Heading does not mention India prominently:', parsedResponse.heading)
+      //   // You could optionally throw an error or modify the heading here
+      // }
 
       return parsedResponse
     } catch (error) {

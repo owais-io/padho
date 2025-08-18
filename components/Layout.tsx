@@ -76,7 +76,7 @@ export default function Layout({
             <div className="flex justify-between items-center py-4">
               <Link href="/" className="flex items-center space-x-2">
                 <div className="flex items-center">
-                  <div className="w-6 h-8 bg-gradient-to-b from-orange-500 via-white to-green-500 rounded border border-gray-300"></div>
+                  {/* <div className="w-6 h-8 bg-gradient-to-b from-orange-500 via-white to-green-500 rounded border border-gray-300"></div> */}
                   <span className="ml-3 text-2xl">
                     <span className="font-extrabold bg-gradient-to-r from-orange-600 to-green-600 bg-clip-text text-transparent">padho</span>
                     <span className="font-normal text-gray-700">.net</span>
@@ -91,12 +91,12 @@ export default function Layout({
                 <Link href="/categories" className="text-gray-700 hover:text-orange-600 font-medium">
                   Categories
                 </Link>
-                <Link href="/about" className="text-gray-700 hover:text-orange-600 font-medium">
+                {/* <Link href="/about" className="text-gray-700 hover:text-orange-600 font-medium">
                   About
-                </Link>
+                </Link> */}
               </nav>
 
-              <div className="flex items-center space-x-4">
+              {/* <div className="flex items-center space-x-4">
                 {showShareButton && (
                   <button
                     onClick={handleShare}
@@ -113,7 +113,7 @@ export default function Layout({
                     </svg>
                   </button>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </header>
@@ -129,7 +129,7 @@ export default function Layout({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="col-span-1 md:col-span-2">
                 <div className="flex items-center space-x-2 mb-4">
-                  <div className="w-6 h-8 bg-gradient-to-b from-orange-500 via-white to-green-500 rounded border border-gray-400"></div>
+                  {/* <div className="w-6 h-8 bg-gradient-to-b from-orange-500 via-white to-green-500 rounded border border-gray-400"></div> */}
                   <span className="text-2xl">
                     <span className="font-extrabold bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">padho</span>
                     <span className="font-normal text-gray-300">.net</span>
@@ -139,12 +139,12 @@ export default function Layout({
                   Your trusted source for simplified, AI-powered news summaries. 
                   Stay informed about India and the world with clear, concise reporting.
                 </p>
-                {categories.length > 0 && (
+                {/* {categories.length > 0 && (
                   <div className="flex space-x-4">
                     <span className="text-orange-400 font-semibold">{categories.reduce((acc, cat) => acc + (cat.count || 0), 0)}+</span>
                     <span className="text-gray-300">Stories Published</span>
                   </div>
-                )}
+                )} */}
               </div>
               
               <div>
@@ -152,7 +152,7 @@ export default function Layout({
                 <ul className="space-y-2">
                   <li><Link href="/" className="text-gray-300 hover:text-orange-400">Home</Link></li>
                   <li><Link href="/categories" className="text-gray-300 hover:text-orange-400">Categories</Link></li>
-                  <li><Link href="/about" className="text-gray-300 hover:text-orange-400">About</Link></li>
+                  {/* <li><Link href="/about" className="text-gray-300 hover:text-orange-400">About</Link></li> */}
                 </ul>
               </div>
               
@@ -199,7 +199,7 @@ export default function Layout({
             </div>
             
             <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-              <p>&copy; 2024 Padho.net. All rights reserved. Made with ❤️ for India.</p>
+              <p>&copy; 2025 Padho.net. All rights reserved. Made with ❤️ for India.</p>
             </div>
           </div>
         </footer>

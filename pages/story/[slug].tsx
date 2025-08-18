@@ -241,7 +241,7 @@ export default function StoryPage({ article, relatedArticles }: StoryPageProps) 
                     <span className="text-sm">{article.openAiSummary.faqs.length} FAQs</span>
                   </div>
                 </div>
-                <a
+                {/* <a
                   href={article.webUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -249,7 +249,7 @@ export default function StoryPage({ article, relatedArticles }: StoryPageProps) 
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Read Original
-                </a>
+                </a> */}
               </div>
             </header>
 
@@ -257,7 +257,7 @@ export default function StoryPage({ article, relatedArticles }: StoryPageProps) 
             <section className="mb-8">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <span className="w-2 h-6 bg-green-500 rounded mr-3"></span>
-                Key Points
+                TL;DR
               </h2>
               <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
                 <ul className="space-y-3">
@@ -347,7 +347,7 @@ export default function StoryPage({ article, relatedArticles }: StoryPageProps) 
             )}
 
             {/* Source Attribution */}
-            <section className="mb-12 p-6 bg-gray-50 rounded-lg border-l-4 border-orange-500">
+            {/* <section className="mb-12 p-6 bg-gray-50 rounded-lg border-l-4 border-orange-500">
               <h3 className="font-semibold text-gray-900 mb-2">Source Information</h3>
               <p className="text-gray-700 mb-3">
                 This summary is based on the original article: "{article.webTitle}"
@@ -361,7 +361,7 @@ export default function StoryPage({ article, relatedArticles }: StoryPageProps) 
                 Read the complete original article
                 <ExternalLink className="w-4 h-4 ml-1" />
               </a>
-            </section>
+            </section> */}
           </article>
 
           {/* Related Articles */}

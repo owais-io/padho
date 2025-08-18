@@ -172,9 +172,9 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
                     <span className="text-orange-600">{category}</span> Stories
                   </h1>
-                  <p className="text-xl text-gray-600">
+                  {/* <p className="text-xl text-gray-600">
                     {totalCount} {totalCount === 1 ? 'story' : 'stories'} in this category
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </div>
@@ -229,10 +229,10 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
               </div>
 
               {/* Results count */}
-              <div className="mt-4 text-sm text-gray-600">
+              {/* <div className="mt-4 text-sm text-gray-600">
                 Showing {filteredArticles.length} of {totalCount} stories
                 {searchTerm && ` for "${searchTerm}"`}
-              </div>
+              </div> */}
             </div>
           </section>
 
@@ -269,7 +269,8 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                       }
                     >
                       {viewMode === 'grid' ? (
-                        <>
+                        <Link 
+                              href={`/story/${article.openAiSummary.slug}`}>
                           {/* Thumbnail with 5:4 aspect ratio */}
                           <div className="relative w-full aspect-[5/4] bg-gray-200">
                             {article.thumbnail ? (
@@ -289,11 +290,11 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                               </div>
                             )}
                             {/* Position badge overlay */}
-                            <div className="absolute top-3 left-3">
+                            {/* <div className="absolute top-3 left-3">
                               <span className="bg-orange-600 text-white text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm bg-opacity-90">
                                 #{index + 1}
                               </span>
-                            </div>
+                            </div> */}
                             {/* Date badge overlay */}
                             <div className="absolute top-3 right-3">
                               <span className="bg-black bg-opacity-50 text-white text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm flex items-center">
@@ -320,21 +321,20 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                               </ul>
                             </div>
 
-                            <Link 
-                              href={`/story/${article.openAiSummary.slug}`}
+                            <p
                               className="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium"
                             >
                               Read Full Story
                               <ArrowRight className="ml-1 w-4 h-4" />
-                            </Link>
+                            </p>
                           </div>
-                        </>
+                        </Link>
                       ) : (
                         <>
                           {/* List view with thumbnail */}
-                          <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          {/* <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
                             {index + 1}
-                          </div>
+                          </div> */}
                           <div className="flex-shrink-0 w-24 h-20 rounded-lg overflow-hidden bg-gray-200">
                             {article.thumbnail ? (
                               <Image
@@ -355,11 +355,11 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                               <span className="text-gray-500 text-sm">
                                 {format(new Date(article.webPublicationDate), 'MMM dd, yyyy')}
                               </span>
-                              {article.sectionName && (
+                              {/* {article.sectionName && (
                                 <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
                                   {article.sectionName}
                                 </span>
-                              )}
+                              )} */}
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
                               {article.openAiSummary.heading}

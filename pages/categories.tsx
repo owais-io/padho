@@ -111,10 +111,10 @@ export default function CategoriesPage({ categories, allArticles, totalArticles 
                 <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
                   Discover stories that matter to you. Browse through different categories or search for specific topics.
                 </p>
-                <div className="flex items-center justify-center text-gray-600">
+                {/* <div className="flex items-center justify-center text-gray-600">
                   <TrendingUp className="w-5 h-5 mr-2" />
                   <span>{totalArticles} Stories across {categories.length} Categories</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </section>
@@ -151,7 +151,7 @@ export default function CategoriesPage({ categories, allArticles, totalArticles 
                   </select>
 
                   {/* View Mode Toggle */}
-                  <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                  {/* <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                     <button
                       onClick={() => setViewMode('grid')}
                       className={`p-2 ${viewMode === 'grid' ? 'bg-orange-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
@@ -164,7 +164,7 @@ export default function CategoriesPage({ categories, allArticles, totalArticles 
                     >
                       <List className="w-5 h-5" />
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -188,9 +188,9 @@ export default function CategoriesPage({ categories, allArticles, totalArticles 
                           <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
                             {category.category}
                           </h3>
-                          <span className="bg-orange-100 text-orange-800 text-sm font-medium px-3 py-1 rounded-full">
+                          {/* <span className="bg-orange-100 text-orange-800 text-sm font-medium px-3 py-1 rounded-full">
                             {category.count}
-                          </span>
+                          </span> */}
                         </div>
                         
                         <div className="space-y-3">

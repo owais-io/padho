@@ -108,10 +108,10 @@ export default function HomePage({ featuredArticles, latestArticles, categories,
                     Explore Stories
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
-                  <div className="flex items-center justify-center text-gray-600">
+                  {/* <div className="flex items-center justify-center text-gray-600">
                     <TrendingUp className="w-5 h-5 mr-2" />
                     <span>{totalArticles}+ Stories & Counting</span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -133,7 +133,8 @@ export default function HomePage({ featuredArticles, latestArticles, categories,
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {featuredArticles.map((article) => (
-                  <article key={article.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100">
+                  <Link 
+                        href={`/story/${article.openAiSummary.slug}`}><article key={article.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100">
                     {/* Thumbnail with 5:4 aspect ratio */}
                     <div className="relative w-full aspect-[5/4] bg-gray-200">
                       {article.thumbnail ? (
@@ -184,15 +185,14 @@ export default function HomePage({ featuredArticles, latestArticles, categories,
                         </ul>
                       </div>
 
-                      <Link 
-                        href={`/story/${article.openAiSummary.slug}`}
-                        className="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium"
+                      <p className="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium"
                       >
                         Read Full Story
                         <ArrowRight className="ml-1 w-4 h-4" />
-                      </Link>
+                      </p>
                     </div>
                   </article>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -238,9 +238,9 @@ export default function HomePage({ featuredArticles, latestArticles, categories,
               <div className="space-y-6">
                 {latestArticles.map((article, index) => (
                   <div key={article.id} className="flex items-start space-x-4 p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    {/* <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
                       {index + 1}
-                    </div>
+                    </div> */}
                     
                     {/* Thumbnail for latest stories */}
                     <div className="flex-shrink-0 w-24 h-20 rounded-lg overflow-hidden bg-gray-200">
