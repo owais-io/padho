@@ -221,9 +221,9 @@ export default function HomePage({ featuredArticles, latestArticles, categories,
                     <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
                       {cat.category}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    {/* <p className="text-sm text-gray-500">
                       {cat.count} {cat.count === 1 ? 'Story' : 'Stories'}
-                    </p>
+                    </p> */}
                   </Link>
                 ))}
               </div>
@@ -326,12 +326,19 @@ export const getServerSideProps: GetServerSideProps = async () => {
       take: 6
     })
 
-    // Get latest articles
+    // Extract the IDs of featured articles to exclude them from latest
+    const featuredArticleIds = featuredArticles.map(article => article.id)
+
+    // Get latest articles (excluding featured articles)
     const latestArticles = await prisma.guardianArticle.findMany({
       where: {
         isDeleted: false,
         openAiSummary: {
           isNot: null
+        },
+        // Exclude articles that are already in featured
+        id: {
+          notIn: featuredArticleIds
         }
       },
       include: {
@@ -345,9 +352,9 @@ export const getServerSideProps: GetServerSideProps = async () => {
           }
         }
       },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      skip: 6 // Skip the featured articles
+      orderBy: { webPublicationDate: 'desc' }, // Changed from createdAt to webPublicationDate
+      take: 5
+      // Removed skip: 6 since we're now explicitly excluding featured articles
     })
 
     // Get categories with counts
@@ -404,3 +411,109 @@ export const getServerSideProps: GetServerSideProps = async () => {
     }
   }
 }
+
+
+
+// export const getServerSideProps: GetServerSideProps = async () => {
+//   try {
+//     // Get featured articles (recent with AI summaries)
+//     const featuredArticles = await prisma.guardianArticle.findMany({
+//       where: {
+//         isDeleted: false,
+//         openAiSummary: {
+//           isNot: null
+//         }
+//       },
+//       include: {
+//         openAiSummary: {
+//           select: {
+//             heading: true,
+//             category: true,
+//             tldr: true,
+//             summary: true,
+//             slug: true
+//           }
+//         }
+//       },
+//       orderBy: { webPublicationDate: 'desc' },
+//       take: 6
+//     })
+
+//     // Get latest articles
+//     const latestArticles = await prisma.guardianArticle.findMany({
+//       where: {
+//         isDeleted: false,
+//         openAiSummary: {
+//           isNot: null
+//         }
+//       },
+//       include: {
+//         openAiSummary: {
+//           select: {
+//             heading: true,
+//             category: true,
+//             tldr: true,
+//             summary: true,
+//             slug: true
+//           }
+//         }
+//       },
+//       orderBy: { createdAt: 'desc' },
+//       take: 5,
+//       skip: 6 // Skip the featured articles
+//     })
+
+//     // Get categories with counts
+//     const categoryData = await prisma.openAiSummary.groupBy({
+//       by: ['category'],
+//       where: {
+//         guardianArticle: {
+//           isDeleted: false
+//         }
+//       },
+//       _count: {
+//         category: true
+//       },
+//       orderBy: {
+//         _count: {
+//           category: 'desc'
+//         }
+//       },
+//       take: 8
+//     })
+
+//     const categories = categoryData.map(item => ({
+//       category: item.category,
+//       count: item._count.category
+//     }))
+
+//     // Get total articles count
+//     const totalArticles = await prisma.guardianArticle.count({
+//       where: {
+//         isDeleted: false,
+//         openAiSummary: {
+//           isNot: null
+//         }
+//       }
+//     })
+
+//     return {
+//       props: {
+//         featuredArticles: JSON.parse(JSON.stringify(featuredArticles)),
+//         latestArticles: JSON.parse(JSON.stringify(latestArticles)),
+//         categories,
+//         totalArticles
+//       }
+//     }
+//   } catch (error) {
+//     console.error('Error fetching homepage data:', error)
+//     return {
+//       props: {
+//         featuredArticles: [],
+//         latestArticles: [],
+//         categories: [],
+//         totalArticles: 0
+//       }
+//     }
+//   }
+// }

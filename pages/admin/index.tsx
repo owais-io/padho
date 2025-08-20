@@ -9,8 +9,9 @@ import toast, { Toaster } from 'react-hot-toast'
 import { 
   Calendar, Database, FileText, TrendingUp, LogOut, Play, BarChart3, 
   Search, Eye, EyeOff, ExternalLink, Clock, Tag, Trash2, RotateCcw,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Merge
 } from 'lucide-react'
+import CategoryMerger from '@/components/admin/CategoryMerger'
 
 interface Stats {
   totalArticles: number
@@ -62,7 +63,7 @@ export default function AdminDashboard() {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [showDeleted, setShowDeleted] = useState(false)
-  const [activeTab, setActiveTab] = useState<'process' | 'articles'>('process')
+  const [activeTab, setActiveTab] = useState<'process' | 'articles' | 'categories'>('process')
 
   useEffect(() => {
     fetchStats()
@@ -163,6 +164,33 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       toast.error('An error occurred while updating article status')
+    }
+  }
+
+  const deleteArticle = async (articleId: string, articleTitle: string) => {
+    // Show confirmation dialog
+    const isConfirmed = window.confirm(
+      `⚠️ PERMANENT DELETE WARNING ⚠️\n\nAre you sure you want to permanently delete this article from the database?\n\n"${articleTitle}"\n\n🚨 This action CANNOT be undone!\n🚨 The article will be completely removed from the database.\n🚨 Any category that only contains this article will disappear.\n\nClick OK only if you're absolutely sure.`
+    )
+    
+    if (!isConfirmed) return
+
+    try {
+      const response = await fetch(`/api/admin/articles/${articleId}/delete`, {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('Article permanently deleted from database')
+        fetchStats()
+        fetchArticles()
+      } else {
+        toast.error(data.error || 'Failed to delete article')
+      }
+    } catch (error) {
+      toast.error('An error occurred while deleting article')
     }
   }
 
@@ -321,6 +349,17 @@ export default function AdminDashboard() {
                   <FileText className="w-4 h-4 inline mr-2" />
                   Manage Articles ({stats?.totalArticles || 0})
                 </button>
+                <button
+                  onClick={() => setActiveTab('categories')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'categories'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Merge className="w-4 h-4 inline mr-2" />
+                  Manage Categories
+                </button>
               </nav>
             </div>
           </div>
@@ -410,7 +449,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : activeTab === 'articles' ? (
             /* Articles Management Section */
             <div className="bg-white shadow rounded-lg">
               <div className="px-6 py-4 border-b border-gray-200">
@@ -421,7 +460,7 @@ export default function AdminDashboard() {
                       Manage Articles
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">
-                      View, search, and manage article visibility
+                      View, search, hide/show, and permanently delete articles
                     </p>
                   </div>
                   <div className="flex items-center space-x-4">
@@ -541,20 +580,30 @@ export default function AdminDashboard() {
                             <ExternalLink className="w-5 h-5" />
                           </a>
                           
+                          {/* Soft Delete Toggle (Show/Hide) */}
                           <button
                             onClick={() => toggleArticleStatus(article.id)}
                             className={`p-2 rounded-md ${
                               article.isDeleted
                                 ? 'text-green-600 hover:bg-green-50'
-                                : 'text-red-600 hover:bg-red-50'
+                                : 'text-yellow-600 hover:bg-yellow-50'
                             }`}
-                            title={article.isDeleted ? 'Restore to website' : 'Hide from website'}
+                            title={article.isDeleted ? 'Show on website' : 'Hide from website'}
                           >
                             {article.isDeleted ? (
-                              <RotateCcw className="w-5 h-5" />
+                              <Eye className="w-5 h-5" />
                             ) : (
-                              <Trash2 className="w-5 h-5" />
+                              <EyeOff className="w-5 h-5" />
                             )}
+                          </button>
+
+                          {/* Hard Delete */}
+                          <button
+                            onClick={() => deleteArticle(article.id, article.openAiSummary?.heading || article.webTitle)}
+                            className="p-2 rounded-md text-red-600 hover:bg-red-50"
+                            title="⚠️ Permanently delete article from database"
+                          >
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
@@ -592,6 +641,13 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
+          ) : (
+            <CategoryMerger 
+              onMergeComplete={() => {
+                fetchStats()
+                // Optionally refresh any other data that might be affected
+              }} 
+            />
           )}
         </div>
       </div>

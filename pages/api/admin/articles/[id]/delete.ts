@@ -1,4 +1,4 @@
-// pages/api/admin/articles/[id]/toggle-delete.ts
+// pages/api/admin/articles/[id]/delete.ts
 
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  if (req.method !== 'PATCH') {
+  if (req.method !== 'DELETE') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
@@ -23,23 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Article ID is required' })
     }
 
-    // Get current article status
+    // Check if article exists and get its details
     const article = await prisma.guardianArticle.findUnique({
       where: { id },
-      select: { isDeleted: true, webTitle: true }
-    })
-
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' })
-    }
-
-    // Toggle soft delete status
-    const updatedArticle = await prisma.guardianArticle.update({
-      where: { id },
-      data: {
-        isDeleted: !article.isDeleted,
-        deletedAt: !article.isDeleted ? new Date() : null
-      },
       include: {
         openAiSummary: {
           select: {
@@ -50,15 +36,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     })
 
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' })
+    }
+
+    // Hard delete the article (this will cascade delete the openAiSummary due to your schema)
+    await prisma.guardianArticle.delete({
+      where: { id }
+    })
+
+    // Note: GuardianArticleId record is intentionally kept for deduplication
+
     res.status(200).json({
       success: true,
-      message: `Article ${updatedArticle.isDeleted ? 'hidden from' : 'restored to'} website`,
-      article: updatedArticle
+      message: 'Article permanently deleted from database',
+      deletedArticle: {
+        id: article.id,
+        title: article.webTitle,
+        heading: article.openAiSummary?.heading,
+        category: article.openAiSummary?.category
+      }
     })
   } catch (error) {
-    console.error('Error toggling article delete status:', error)
+    console.error('Error permanently deleting article:', error)
     res.status(500).json({
-      error: 'Failed to update article status',
+      error: 'Failed to delete article permanently',
       message: error instanceof Error ? error.message : 'Unknown error'
     })
   }
