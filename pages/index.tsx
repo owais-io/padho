@@ -1,4 +1,4 @@
-// pages/index.tsx - Updated with NextSeo and Thumbnails
+// pages/index.tsx - Updated with Category Thumbnails
 
 import { GetServerSideProps } from 'next'
 import { NextSeo } from 'next-seo'
@@ -24,10 +24,16 @@ interface Article {
   }
 }
 
+interface CategoryWithThumbnails {
+  category: string
+  count: number
+  sampleThumbnails: string[]
+}
+
 interface HomePageProps {
   featuredArticles: Article[]
   latestArticles: Article[]
-  categories: { category: string; count: number }[]
+  categories: CategoryWithThumbnails[]
   totalArticles: number
 }
 
@@ -108,10 +114,6 @@ export default function HomePage({ featuredArticles, latestArticles, categories,
                     Explore Stories
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
-                  {/* <div className="flex items-center justify-center text-gray-600">
-                    <TrendingUp className="w-5 h-5 mr-2" />
-                    <span>{totalArticles}+ Stories & Counting</span>
-                  </div> */}
                 </div>
               </div>
             </div>
@@ -215,15 +217,88 @@ export default function HomePage({ featuredArticles, latestArticles, categories,
                     href={`/category/${encodeURIComponent(cat.category.toLowerCase())}`}
                     className="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow duration-300 border border-gray-200 group"
                   >
-                    <div className="w-12 h-12 bg-gradient-to-b from-orange-500 via-white to-green-500 rounded-lg mx-auto mb-4 flex items-center justify-center border border-gray-300">
-                      <Eye className="w-6 h-6 text-gray-700" />
+                    {/* Category Thumbnails */}
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-lg overflow-hidden bg-gray-100">
+                      {cat.sampleThumbnails.length > 0 ? (
+                        <div className="w-full h-full relative">
+                          {cat.sampleThumbnails.length === 1 ? (
+                            // Single thumbnail
+                            <Image
+                              src={cat.sampleThumbnails[0]}
+                              alt={`${cat.category} stories`}
+                              width={64}
+                              height={64}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : cat.sampleThumbnails.length === 2 ? (
+                            // Two thumbnails side by side
+                            <div className="flex w-full h-full">
+                              <div className="w-1/2 h-full relative">
+                                <Image
+                                  src={cat.sampleThumbnails[0]}
+                                  alt={`${cat.category} stories`}
+                                  width={32}
+                                  height={64}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="w-1/2 h-full relative">
+                                <Image
+                                  src={cat.sampleThumbnails[1]}
+                                  alt={`${cat.category} stories`}
+                                  width={32}
+                                  height={64}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            // Three thumbnails in a grid
+                            <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-0.5">
+                              <div className="relative">
+                                <Image
+                                  src={cat.sampleThumbnails[0]}
+                                  alt={`${cat.category} stories`}
+                                  width={32}
+                                  height={32}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="relative">
+                                <Image
+                                  src={cat.sampleThumbnails[1]}
+                                  alt={`${cat.category} stories`}
+                                  width={32}
+                                  height={32}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="relative col-span-2">
+                                <Image
+                                  src={cat.sampleThumbnails[2]}
+                                  alt={`${cat.category} stories`}
+                                  width={64}
+                                  height={32}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        // Fallback to original design when no thumbnails available
+                        <div className="w-full h-full bg-gradient-to-b from-orange-500 via-white to-green-500 rounded-lg flex items-center justify-center border border-gray-300">
+                          <Eye className="w-6 h-6 text-gray-700" />
+                        </div>
+                      )}
                     </div>
+
                     <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
                       {cat.category}
                     </h3>
-                    {/* <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500">
                       {cat.count} {cat.count === 1 ? 'Story' : 'Stories'}
-                    </p> */}
+                    </p>
                   </Link>
                 ))}
               </div>
@@ -238,10 +313,6 @@ export default function HomePage({ featuredArticles, latestArticles, categories,
               <div className="space-y-6">
                 {latestArticles.map((article, index) => (
                   <div key={article.id} className="flex items-start space-x-4 p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    {/* <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      {index + 1}
-                    </div> */}
-                    
                     {/* Thumbnail for latest stories */}
                     <div className="flex-shrink-0 w-24 h-20 rounded-lg overflow-hidden bg-gray-200">
                       {article.thumbnail ? (
@@ -352,12 +423,11 @@ export const getServerSideProps: GetServerSideProps = async () => {
           }
         }
       },
-      orderBy: { webPublicationDate: 'desc' }, // Changed from createdAt to webPublicationDate
+      orderBy: { webPublicationDate: 'desc' },
       take: 5
-      // Removed skip: 6 since we're now explicitly excluding featured articles
     })
 
-    // Get categories with counts
+    // Get categories with counts AND sample thumbnails
     const categoryData = await prisma.openAiSummary.groupBy({
       by: ['category'],
       where: {
@@ -376,10 +446,35 @@ export const getServerSideProps: GetServerSideProps = async () => {
       take: 8
     })
 
-    const categories = categoryData.map(item => ({
-      category: item.category,
-      count: item._count.category
-    }))
+    // For each category, fetch sample articles with thumbnails
+    const categoriesWithThumbnails = await Promise.all(
+      categoryData.map(async (item) => {
+        const sampleArticles = await prisma.guardianArticle.findMany({
+          where: {
+            isDeleted: false,
+            thumbnail: {
+              not: null
+            },
+            openAiSummary: {
+              category: item.category
+            }
+          },
+          select: {
+            thumbnail: true
+          },
+          orderBy: { webPublicationDate: 'desc' },
+          take: 3
+        })
+
+        return {
+          category: item.category,
+          count: item._count.category,
+          sampleThumbnails: sampleArticles
+            .map(article => article.thumbnail)
+            .filter((thumbnail): thumbnail is string => thumbnail !== null)
+        }
+      })
+    )
 
     // Get total articles count
     const totalArticles = await prisma.guardianArticle.count({
@@ -395,7 +490,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
       props: {
         featuredArticles: JSON.parse(JSON.stringify(featuredArticles)),
         latestArticles: JSON.parse(JSON.stringify(latestArticles)),
-        categories,
+        categories: categoriesWithThumbnails,
         totalArticles
       }
     }
@@ -411,109 +506,3 @@ export const getServerSideProps: GetServerSideProps = async () => {
     }
   }
 }
-
-
-
-// export const getServerSideProps: GetServerSideProps = async () => {
-//   try {
-//     // Get featured articles (recent with AI summaries)
-//     const featuredArticles = await prisma.guardianArticle.findMany({
-//       where: {
-//         isDeleted: false,
-//         openAiSummary: {
-//           isNot: null
-//         }
-//       },
-//       include: {
-//         openAiSummary: {
-//           select: {
-//             heading: true,
-//             category: true,
-//             tldr: true,
-//             summary: true,
-//             slug: true
-//           }
-//         }
-//       },
-//       orderBy: { webPublicationDate: 'desc' },
-//       take: 6
-//     })
-
-//     // Get latest articles
-//     const latestArticles = await prisma.guardianArticle.findMany({
-//       where: {
-//         isDeleted: false,
-//         openAiSummary: {
-//           isNot: null
-//         }
-//       },
-//       include: {
-//         openAiSummary: {
-//           select: {
-//             heading: true,
-//             category: true,
-//             tldr: true,
-//             summary: true,
-//             slug: true
-//           }
-//         }
-//       },
-//       orderBy: { createdAt: 'desc' },
-//       take: 5,
-//       skip: 6 // Skip the featured articles
-//     })
-
-//     // Get categories with counts
-//     const categoryData = await prisma.openAiSummary.groupBy({
-//       by: ['category'],
-//       where: {
-//         guardianArticle: {
-//           isDeleted: false
-//         }
-//       },
-//       _count: {
-//         category: true
-//       },
-//       orderBy: {
-//         _count: {
-//           category: 'desc'
-//         }
-//       },
-//       take: 8
-//     })
-
-//     const categories = categoryData.map(item => ({
-//       category: item.category,
-//       count: item._count.category
-//     }))
-
-//     // Get total articles count
-//     const totalArticles = await prisma.guardianArticle.count({
-//       where: {
-//         isDeleted: false,
-//         openAiSummary: {
-//           isNot: null
-//         }
-//       }
-//     })
-
-//     return {
-//       props: {
-//         featuredArticles: JSON.parse(JSON.stringify(featuredArticles)),
-//         latestArticles: JSON.parse(JSON.stringify(latestArticles)),
-//         categories,
-//         totalArticles
-//       }
-//     }
-//   } catch (error) {
-//     console.error('Error fetching homepage data:', error)
-//     return {
-//       props: {
-//         featuredArticles: [],
-//         latestArticles: [],
-//         categories: [],
-//         totalArticles: 0
-//       }
-//     }
-//   }
-// }
