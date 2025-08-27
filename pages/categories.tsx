@@ -306,15 +306,23 @@ export default function CategoriesPage({ categories, allArticles, totalArticles 
                               </h3>
                               
                               <div className="mb-4">
-                                <p className="text-sm font-medium text-gray-700 mb-2">Key Points:</p>
-                                <ul className="space-y-1">
-                                  {article.tldr.slice(0, 2).map((point, index) => (
-                                    <li key={index} className="text-sm text-gray-600 flex items-start">
-                                      <span className="text-green-500 mr-2 mt-1">•</span>
-                                      <span className="line-clamp-2">{point}</span>
-                                    </li>
-                                  ))}
-                                </ul>
+                                {article.tldr ? (
+                                  <>
+                                    <p className="text-sm font-medium text-gray-700 mb-2">Key Points:</p>
+                                    <ul className="space-y-1">
+                                      {article.tldr.slice(0, 2).map((point, index) => (
+                                        <li key={index} className="text-sm text-gray-600 flex items-start">
+                                          <span className="text-green-500 mr-2 mt-1">•</span>
+                                          <span className="line-clamp-2">{point}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </>
+                                ) : (
+                                  <p className="text-sm text-gray-600 line-clamp-3">
+                                    {article.description}
+                                  </p>
+                                )}
                               </div>
 
                               <Link 
