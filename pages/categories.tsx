@@ -16,7 +16,8 @@ interface Article {
   category: string
   publishedAt: string
   thumbnail?: string
-  tldr: string[]
+  tldr?: string[]
+  description?: string
   content: string
 }
 

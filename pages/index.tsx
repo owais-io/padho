@@ -16,7 +16,8 @@ interface Article {
   publishedAt: string
   originalUrl: string
   thumbnail?: string
-  tldr: string[]
+  tldr?: string[]
+  description?: string
   content: string
 }
 
