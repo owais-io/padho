@@ -3,7 +3,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../../../../../lib/auth'
-import { prisma } from '../../../../../lib/prisma'
+import { contentManager } from '../../../../../lib/services/contentManager'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Check authentication
@@ -20,39 +20,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { id } = req.query
 
     if (!id || typeof id !== 'string') {
-      return res.status(400).json({ error: 'Article ID is required' })
+      return res.status(400).json({ error: 'Article slug is required' })
     }
 
-    // Get current article status
-    const article = await prisma.guardianArticle.findUnique({
-      where: { id },
-      select: { isDeleted: true, webTitle: true }
-    })
+    // Toggle article visibility using ContentManager
+    const success = await contentManager.toggleArticleVisibility(id)
 
-    if (!article) {
+    if (!success) {
       return res.status(404).json({ error: 'Article not found' })
     }
 
-    // Toggle soft delete status
-    const updatedArticle = await prisma.guardianArticle.update({
-      where: { id },
-      data: {
-        isDeleted: !article.isDeleted,
-        deletedAt: !article.isDeleted ? new Date() : null
-      },
-      include: {
-        openAiSummary: {
-          select: {
-            heading: true,
-            category: true
-          }
-        }
-      }
-    })
+    // Get updated article to confirm status
+    const updatedArticle = await contentManager.getArticleBySlug(id)
 
     res.status(200).json({
       success: true,
-      message: `Article ${updatedArticle.isDeleted ? 'hidden from' : 'restored to'} website`,
+      message: `Article ${updatedArticle?.isDeleted ? 'hidden from' : 'restored to'} website`,
       article: updatedArticle
     })
   } catch (error) {

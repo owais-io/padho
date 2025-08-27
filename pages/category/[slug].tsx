@@ -5,25 +5,21 @@ import { NextSeo } from 'next-seo'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { prisma } from '../../lib/prisma'
+import { contentManager } from '../../lib/services/contentManager'
 import { ArrowLeft, Clock, ArrowRight, Search, Filter, Grid, List, Eye } from 'lucide-react'
 import { useState } from 'react'
 import { format } from 'date-fns'
 import Layout from '../../components/Layout'
 
 interface Article {
-  id: string
-  webPublicationDate: string
-  sectionName: string | null
-  createdAt: string
-  thumbnail: string | null
-  openAiSummary: {
-    heading: string
-    category: string
-    tldr: string[]
-    summary: string
-    slug: string
-  }
+  slug: string
+  title: string
+  category: string
+  publishedAt: string
+  thumbnail?: string
+  tldr: string[]
+  content: string
+  section?: string
 }
 
 interface CategoryPageProps {
@@ -42,11 +38,11 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
   const filteredArticles = articles
     .filter(article => 
       searchTerm === '' || 
-      article.openAiSummary.heading.toLowerCase().includes(searchTerm.toLowerCase())
+      article.title.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      const dateA = new Date(a.webPublicationDate).getTime()
-      const dateB = new Date(b.webPublicationDate).getTime()
+      const dateA = new Date(a.publishedAt).getTime()
+      const dateB = new Date(b.publishedAt).getTime()
       return sortBy === 'newest' ? dateB - dateA : dateA - dateB
     })
 
@@ -63,10 +59,10 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
       type: 'website',
       images: latestArticle ? [
         {
-          url: latestArticle.thumbnail || `https://padho.net/api/og-image?title=${encodeURIComponent(latestArticle.openAiSummary.heading)}&category=${encodeURIComponent(category)}`,
+          url: latestArticle.thumbnail || `https://padho.net/api/og-image?title=${encodeURIComponent(latestArticle.title)}&category=${encodeURIComponent(category)}`,
           width: 1200,
           height: 630,
-          alt: `${category} News - ${latestArticle.openAiSummary.heading}`,
+          alt: `${category} News - ${latestArticle.title}`,
         }
       ] : [
         {
@@ -99,9 +95,9 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
         position: index + 1,
         item: {
           '@type': 'NewsArticle',
-          headline: article.openAiSummary.heading,
-          url: `https://padho.net/story/${article.openAiSummary.slug}`,
-          datePublished: article.webPublicationDate,
+          headline: article.title,
+          url: `https://padho.net/story/${article.slug}`,
+          datePublished: article.publishedAt,
           articleSection: category
         }
       }))
@@ -262,7 +258,7 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                 }>
                   {filteredArticles.map((article, index) => (
                     <article 
-                      key={article.id} 
+                      key={article.slug} 
                       className={viewMode === 'grid' 
                         ? 'bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100'
                         : 'flex items-start space-x-4 p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
@@ -270,13 +266,13 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                     >
                       {viewMode === 'grid' ? (
                         <Link 
-                              href={`/story/${article.openAiSummary.slug}`}>
+                              href={`/story/${article.slug}`}>
                           {/* Thumbnail with 5:4 aspect ratio */}
                           <div className="relative w-full aspect-[5/4] bg-gray-200">
                             {article.thumbnail ? (
                               <Image
                                 src={article.thumbnail}
-                                alt={article.openAiSummary.heading}
+                                alt={article.title}
                                 fill
                                 className="object-cover"
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -285,7 +281,7 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                               <div className="w-full h-full bg-gradient-to-br from-orange-100 to-green-100 flex items-center justify-center">
                                 <div className="text-center">
                                   <Eye className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                                  <span className="text-gray-500 text-sm">{article.openAiSummary.category}</span>
+                                  <span className="text-gray-500 text-sm">{article.category}</span>
                                 </div>
                               </div>
                             )}
@@ -299,20 +295,20 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                             <div className="absolute top-3 right-3">
                               <span className="bg-black bg-opacity-50 text-white text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm flex items-center">
                                 <Clock className="w-3 h-3 mr-1" />
-                                {format(new Date(article.webPublicationDate), 'MMM dd')}
+                                {format(new Date(article.publishedAt), 'MMM dd')}
                               </span>
                             </div>
                           </div>
 
                           <div className="p-6">
                             <h3 className="text-xl font-bold text-gray-900 mb-4 line-clamp-3">
-                              {article.openAiSummary.heading}
+                              {article.title}
                             </h3>
                             
                             <div className="mb-4">
                               <p className="text-sm font-medium text-gray-700 mb-2">Key Points:</p>
                               <ul className="space-y-2">
-                                {article.openAiSummary.tldr.map((point, pointIndex) => (
+                                {article.tldr.map((point, pointIndex) => (
                                   <li key={pointIndex} className="text-sm text-gray-600 flex items-start">
                                     <span className="text-green-500 mr-2 mt-1 font-bold">•</span>
                                     <span className="line-clamp-2">{point}</span>
@@ -339,7 +335,7 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                             {article.thumbnail ? (
                               <Image
                                 src={article.thumbnail}
-                                alt={article.openAiSummary.heading}
+                                alt={article.title}
                                 width={96}
                                 height={80}
                                 className="w-full h-full object-cover"
@@ -353,22 +349,22 @@ export default function CategoryPage({ category, articles, totalCount, relatedCa
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-3 mb-2">
                               <span className="text-gray-500 text-sm">
-                                {format(new Date(article.webPublicationDate), 'MMM dd, yyyy')}
+                                {format(new Date(article.publishedAt), 'MMM dd, yyyy')}
                               </span>
-                              {/* {article.sectionName && (
+                              {/* {article.section && (
                                 <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-                                  {article.sectionName}
+                                  {article.section}
                                 </span>
                               )} */}
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                              {article.openAiSummary.heading}
+                              {article.title}
                             </h3>
                             <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                              {article.openAiSummary.summary.substring(0, 200)}...
+                              {article.content.substring(0, 200)}...
                             </p>
                             <Link 
-                              href={`/story/${article.openAiSummary.slug}`}
+                              href={`/story/${article.slug}`}
                               className="text-orange-600 hover:text-orange-700 text-sm font-medium"
                             >
                               Read More →
@@ -454,68 +450,29 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ')
 
-    // Get articles for this category (including thumbnail)
-    const articles = await prisma.guardianArticle.findMany({
-      where: {
-        isDeleted: false,
-        openAiSummary: {
-          category: {
-            equals: category,
-            mode: 'insensitive'
-          }
-        }
-      },
-      select: {
-        id: true,
-        webPublicationDate: true,
-        sectionName: true,
-        createdAt: true,
-        thumbnail: true, // Include thumbnail
-        openAiSummary: {
-          select: {
-            heading: true,
-            category: true,
-            tldr: true,
-            summary: true,
-            slug: true
-          }
-        }
-      },
-      orderBy: { webPublicationDate: 'desc' }
-    })
+    // Get all published articles
+    const allArticles = await contentManager.getPublishedArticles();
+    
+    // Filter articles for this category (case insensitive)
+    const articles = allArticles.filter(article => 
+      article.category.toLowerCase() === category.toLowerCase()
+    );
 
     if (articles.length === 0) {
       return { notFound: true }
     }
 
-    // Get related categories (excluding current one)
-    const allCategories = await prisma.openAiSummary.groupBy({
-      by: ['category'],
-      where: {
-        guardianArticle: {
-          isDeleted: false
-        },
-        category: {
-          not: category
-        }
-      },
-      _count: {
-        category: true
-      },
-      orderBy: {
-        _count: {
-          category: 'desc'
-        }
-      },
-      take: 8
-    })
-
-    const relatedCategories = allCategories.map(cat => cat.category)
+    // Get all unique categories for related categories (excluding current)
+    const allCategories = await contentManager.getAllCategories();
+    const relatedCategories = allCategories
+      .filter(cat => cat.category.toLowerCase() !== category.toLowerCase())
+      .slice(0, 8) // Take top 8
+      .map(cat => cat.category);
 
     return {
       props: {
-        category: articles[0].openAiSummary?.category || category,
-        articles: JSON.parse(JSON.stringify(articles)),
+        category: articles[0].category, // Use the actual case from the article
+        articles,
         totalCount: articles.length,
         relatedCategories
       }

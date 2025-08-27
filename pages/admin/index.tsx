@@ -14,30 +14,22 @@ import {
 import CategoryMerger from '@/components/admin/CategoryMerger'
 
 interface Stats {
-  totalArticles: number
-  totalSummaries: number
-  recentArticles: number
-  publishedArticles: number
-  hiddenArticles: number
-  successRate: number
+  total: number
+  published: number
+  hidden: number
+  recent: number
 }
 
 interface Article {
-  id: string
-  webTitle: string
-  sectionName: string | null
-  webPublicationDate: string
-  webUrl: string
-  thumbnail: string | null
+  slug: string
+  title: string
+  category: string
+  publishedAt: string
+  originalUrl: string
+  thumbnail?: string
   isDeleted: boolean
-  deletedAt: string | null
-  createdAt: string
-  openAiSummary: {
-    heading: string
-    category: string
-    tldr: string[]
-    createdAt: string
-  } | null
+  section?: string
+  tldr: string[]
 }
 
 interface ArticlesResponse {
@@ -240,7 +232,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           {/* Stats Cards */}
           {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div className="bg-white overflow-hidden shadow rounded-lg">
                 <div className="p-5">
                   <div className="flex items-center">
@@ -250,7 +242,7 @@ export default function AdminDashboard() {
                     <div className="ml-5 w-0 flex-1">
                       <dl>
                         <dt className="text-sm font-medium text-gray-500 truncate">Total Articles</dt>
-                        <dd className="text-lg font-medium text-gray-900">{stats.totalArticles}</dd>
+                        <dd className="text-lg font-medium text-gray-900">{stats.total}</dd>
                       </dl>
                     </div>
                   </div>
@@ -266,7 +258,7 @@ export default function AdminDashboard() {
                     <div className="ml-5 w-0 flex-1">
                       <dl>
                         <dt className="text-sm font-medium text-gray-500 truncate">Published</dt>
-                        <dd className="text-lg font-medium text-gray-900">{stats.publishedArticles}</dd>
+                        <dd className="text-lg font-medium text-gray-900">{stats.published}</dd>
                       </dl>
                     </div>
                   </div>
@@ -282,7 +274,7 @@ export default function AdminDashboard() {
                     <div className="ml-5 w-0 flex-1">
                       <dl>
                         <dt className="text-sm font-medium text-gray-500 truncate">Hidden</dt>
-                        <dd className="text-lg font-medium text-gray-900">{stats.hiddenArticles}</dd>
+                        <dd className="text-lg font-medium text-gray-900">{stats.hidden}</dd>
                       </dl>
                     </div>
                   </div>
@@ -298,28 +290,13 @@ export default function AdminDashboard() {
                     <div className="ml-5 w-0 flex-1">
                       <dl>
                         <dt className="text-sm font-medium text-gray-500 truncate">Recent (24h)</dt>
-                        <dd className="text-lg font-medium text-gray-900">{stats.recentArticles}</dd>
+                        <dd className="text-lg font-medium text-gray-900">{stats.recent}</dd>
                       </dl>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <BarChart3 className="h-6 w-6 text-purple-400" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">Success Rate</dt>
-                        <dd className="text-lg font-medium text-gray-900">{stats.successRate.toFixed(1)}%</dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -347,7 +324,7 @@ export default function AdminDashboard() {
                   }`}
                 >
                   <FileText className="w-4 h-4 inline mr-2" />
-                  Manage Articles ({stats?.totalArticles || 0})
+                  Manage Articles ({stats?.total || 0})
                 </button>
                 <button
                   onClick={() => setActiveTab('categories')}
@@ -440,7 +417,7 @@ export default function AdminDashboard() {
                         <ul className="list-disc pl-5 space-y-1">
                           <li>Only articles with "India" in the title will be fetched</li>
                           <li>Duplicate articles will be automatically skipped</li>
-                          <li>Each article will be summarized using OpenAI GPT-4o</li>
+                          <li>Each article will be summarized using OpenAI GPT-4o and saved as MDX files</li>
                           <li>Processing may take several minutes depending on the number of articles</li>
                         </ul>
                       </div>
@@ -510,7 +487,7 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   articles.map((article) => (
-                    <div key={article.id} className={`p-6 ${article.isDeleted ? 'bg-red-50' : 'bg-white'}`}>
+                    <div key={article.slug} className={`p-6 ${article.isDeleted ? 'bg-red-50' : 'bg-white'}`}>
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 mb-2">
@@ -520,32 +497,26 @@ export default function AdminDashboard() {
                                 Hidden
                               </span>
                             )}
-                            {article.openAiSummary && (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                AI Processed
-                              </span>
-                            )}
-                            {article.sectionName && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              AI Processed
+                            </span>
+                            {article.section && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 <Tag className="w-3 h-3 mr-1" />
-                                {article.sectionName}
+                                {article.section}
                               </span>
                             )}
                           </div>
                           
                           <h3 className="text-lg font-medium text-gray-900 mb-1">
-                            {article.openAiSummary?.heading || article.webTitle}
+                            {article.title}
                           </h3>
-                          
-                          <p className="text-sm text-gray-600 mb-2">
-                            Original: {article.webTitle}
-                          </p>
 
-                          {article.openAiSummary?.tldr && (
+                          {article.tldr && article.tldr.length > 0 && (
                             <div className="mb-3">
                               <p className="text-sm font-medium text-gray-700 mb-1">Key Points:</p>
                               <ul className="text-sm text-gray-600 space-y-1">
-                                {article.openAiSummary.tldr.map((point, index) => (
+                                {article.tldr.map((point, index) => (
                                   <li key={index} className="flex items-start">
                                     <span className="text-gray-400 mr-2">•</span>
                                     {point}
@@ -558,20 +529,18 @@ export default function AdminDashboard() {
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
                             <span className="flex items-center">
                               <Clock className="w-4 h-4 mr-1" />
-                              {format(new Date(article.webPublicationDate), 'MMM dd, yyyy')}
+                              {format(new Date(article.publishedAt), 'MMM dd, yyyy')}
                             </span>
-                            {article.openAiSummary && (
-                              <span className="flex items-center">
-                                <Database className="w-4 h-4 mr-1" />
-                                {article.openAiSummary.category}
-                              </span>
-                            )}
+                            <span className="flex items-center">
+                              <Database className="w-4 h-4 mr-1" />
+                              {article.category}
+                            </span>
                           </div>
                         </div>
 
                         <div className="flex items-center space-x-3 ml-4">
                           <a
-                            href={article.webUrl}
+                            href={article.originalUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-indigo-600 hover:text-indigo-900"
@@ -582,7 +551,7 @@ export default function AdminDashboard() {
                           
                           {/* Soft Delete Toggle (Show/Hide) */}
                           <button
-                            onClick={() => toggleArticleStatus(article.id)}
+                            onClick={() => toggleArticleStatus(article.slug)}
                             className={`p-2 rounded-md ${
                               article.isDeleted
                                 ? 'text-green-600 hover:bg-green-50'
@@ -599,9 +568,9 @@ export default function AdminDashboard() {
 
                           {/* Hard Delete */}
                           <button
-                            onClick={() => deleteArticle(article.id, article.openAiSummary?.heading || article.webTitle)}
+                            onClick={() => deleteArticle(article.slug, article.title)}
                             className="p-2 rounded-md text-red-600 hover:bg-red-50"
-                            title="⚠️ Permanently delete article from database"
+                            title="⚠️ Permanently delete article file"
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>

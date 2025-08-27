@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../../../lib/auth'
-import { prisma } from '../../../lib/prisma'
+import { contentManager } from '../../../lib/services/contentManager'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Check authentication
@@ -21,58 +21,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const pageNum = parseInt(page as string)
       const limitNum = parseInt(limit as string)
-      const skip = (pageNum - 1) * limitNum
       const includeDeleted = showDeleted === 'true'
 
-      // Build where clause
-      const where: any = {}
+      let articles
       
-      if (!includeDeleted) {
-        where.isDeleted = false
+      if (search && typeof search === 'string' && search.trim() !== '') {
+        // Use search functionality
+        const searchResults = await contentManager.searchArticles(search as string)
+        const filteredResults = includeDeleted ? searchResults : searchResults.filter(article => !article.isDeleted)
+        
+        // Manual pagination for search results
+        const total = filteredResults.length
+        const totalPages = Math.ceil(total / limitNum)
+        const startIndex = (pageNum - 1) * limitNum
+        const paginatedArticles = filteredResults.slice(startIndex, startIndex + limitNum)
+        
+        res.status(200).json({
+          articles: paginatedArticles,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages,
+            hasNext: pageNum < totalPages,
+            hasPrev: pageNum > 1
+          }
+        })
+      } else {
+        // Use pagination functionality
+        const result = await contentManager.getArticlesPaginated(pageNum, limitNum, includeDeleted)
+        
+        res.status(200).json({
+          articles: result.articles,
+          pagination: {
+            page: result.page,
+            limit: limitNum,
+            total: result.total,
+            totalPages: result.totalPages,
+            hasNext: result.page < result.totalPages,
+            hasPrev: result.page > 1
+          }
+        })
       }
-
-      if (search) {
-        where.OR = [
-          { webTitle: { contains: search as string, mode: 'insensitive' } },
-          { openAiSummary: { heading: { contains: search as string, mode: 'insensitive' } } },
-          { sectionName: { contains: search as string, mode: 'insensitive' } }
-        ]
-      }
-
-      // Get articles with pagination
-      const [articles, totalCount] = await Promise.all([
-        prisma.guardianArticle.findMany({
-          where,
-          include: {
-            openAiSummary: {
-              select: {
-                heading: true,
-                category: true,
-                tldr: true,
-                createdAt: true
-              }
-            }
-          },
-          orderBy: { createdAt: 'desc' },
-          skip,
-          take: limitNum
-        }),
-        prisma.guardianArticle.count({ where })
-      ])
-
-      const totalPages = Math.ceil(totalCount / limitNum)
-
-      res.status(200).json({
-        articles,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total: totalCount,
-          totalPages,
-          hasNext: pageNum < totalPages,
-          hasPrev: pageNum > 1
-        }
-      })
     } catch (error) {
       console.error('Error fetching articles:', error)
       res.status(500).json({

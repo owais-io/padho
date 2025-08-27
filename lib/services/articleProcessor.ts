@@ -1,9 +1,8 @@
 // lib/services/articleProcessor.ts
 
-import { prisma } from '../prisma'
 import { GuardianService, GuardianArticle } from './guardian'
-import { OpenAIService } from './openai'
-import { generateSlug } from '../utils'
+import { OpenAIService } from './openai-mdx'
+import { duplicateTracker } from './duplicateTracker'
 
 
 export class ArticleProcessorService {
@@ -34,14 +33,8 @@ export class ArticleProcessorService {
 
       onProgress?.(0, articles.length, `Found ${articles.length} articles. Checking for duplicates...`)
 
-      // Get existing Guardian IDs to avoid duplicates
-      const existingIds = await prisma.guardianArticleId.findMany({
-        select: { guardianId: true }
-      })
-      const existingIdSet = new Set(existingIds.map(item => item.guardianId))
-
-      // Filter out existing articles
-      const newArticles = articles.filter(article => !existingIdSet.has(article.id))
+      // Filter out existing articles using our duplicate tracker
+      const newArticles = articles.filter(article => !duplicateTracker.isProcessed(article.id))
 
       onProgress?.(0, newArticles.length, `Processing ${newArticles.length} new articles...`)
 
@@ -76,81 +69,30 @@ export class ArticleProcessorService {
   }
 
   private async processSingleArticle(article: GuardianArticle) {
-    // Step 1: Save Guardian article and ID tracking (fast operations)
-    const savedArticle = await prisma.$transaction(async (tx) => {
-      // Add to Guardian ID tracking table
-      await tx.guardianArticleId.create({
-        data: {
-          guardianId: article.id
-        }
-      })
-
-      // Save Guardian article
-      return await tx.guardianArticle.create({
-        data: {
-          guardianId: article.id,
-          webTitle: article.webTitle,
-          sectionName: article.sectionName || null,
-          webPublicationDate: new Date(article.webPublicationDate),
-          webUrl: article.webUrl,
-          apiUrl: article.apiUrl,
-          bodyText: this.extractBodyText(article),
-          headline: article.fields?.headline || article.webTitle,
-          thumbnail: article.fields?.thumbnail || null,
-          pillarName: article.pillarName || null,
-          isHosted: article.isHosted
-        }
-      })
-    }, {
-      timeout: 10000, // 10 seconds for database operations
-    })
-
-    // Step 2: Process with OpenAI (slow operation, outside transaction)
-    const bodyText = this.extractBodyText(article)
-    if (bodyText && bodyText.length > 100) {
-      try {
-        // Process with OpenAI (this can take 10-30 seconds)
-        const openAISummary = await this.openAIService.summarizeArticle(bodyText)
-
-        let baseSlug = generateSlug(openAISummary.heading)
-        let finalSlug = baseSlug
-        let counter = 1
-
-        // Ensure slug uniqueness
-        while (true) {
-          const existingSlug = await prisma.openAiSummary.findUnique({
-            where: { slug: finalSlug }
-          })
-
-          if (!existingSlug) {
-            break // Slug is unique
-          }
-
-          finalSlug = `${baseSlug}-${counter}`
-          counter++
-        }
-
-        // Create summary with slug
-        await prisma.openAiSummary.create({
-          data: {
-            guardianArticleId: savedArticle.id,
-            summary: openAISummary.summary,
-            tldr: openAISummary.tldr,
-            faqs: openAISummary.faqs,
-            heading: openAISummary.heading,
-            category: openAISummary.category,
-            slug: finalSlug // ← ADD THIS LINE
-          }
-        })
-      } catch (openAIError) {
-        console.error(`OpenAI processing failed for article ${article.id}:`, openAIError)
-        // Article is saved, but OpenAI summary failed - this is acceptable
-        // The article will still be tracked and won't be reprocessed
-        throw new Error(`OpenAI processing failed: ${openAIError instanceof Error ? openAIError.message : 'Unknown error'}`)
+    try {
+      // Extract body text
+      const bodyText = this.extractBodyText(article)
+      
+      if (!bodyText || bodyText.length <= 100) {
+        throw new Error('Article body text is too short or missing')
       }
-    }
 
-    return savedArticle
+      // Generate AI summary first
+      const summaryData = await this.openAIService.summarizeArticle(bodyText)
+      
+      // Create MDX article using the OpenAI MDX service
+      const slug = await this.openAIService.createMDXArticle(article, summaryData)
+      
+      // Mark as processed after successful creation
+      duplicateTracker.addProcessed(article.id, slug)
+      
+      console.log(`Successfully created MDX article: ${slug}`)
+      
+      return { success: true, slug }
+    } catch (error) {
+      // Don't add to processed list if creation failed
+      throw error
+    }
   }
 
   private extractBodyText(article: GuardianArticle): string | null {
@@ -166,26 +108,5 @@ export class ArticleProcessorService {
     }
 
     return null
-  }
-
-  async getProcessingStats() {
-    const [totalArticles, totalSummaries, recentArticles] = await Promise.all([
-      prisma.guardianArticle.count(),
-      prisma.openAiSummary.count(),
-      prisma.guardianArticle.count({
-        where: {
-          createdAt: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-          }
-        }
-      })
-    ])
-
-    return {
-      totalArticles,
-      totalSummaries,
-      recentArticles,
-      successRate: totalArticles > 0 ? (totalSummaries / totalArticles) * 100 : 0
-    }
   }
 }

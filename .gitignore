@@ -174,21 +174,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Prisma
-# Keep schema.prisma but ignore generated client and migrations if needed
-# Uncomment these if you want to ignore migrations:
-# prisma/migrations/
-# prisma/generated/
-
-# Database files (if using local SQLite)
-*.db
-*.sqlite
-*.sqlite3
-
-# Backup files
-*.backup
-*.bak
-*.sql
+# Content files that are auto-generated
+content/processed-articles.json
 
 # Temporary files
 *.tmp

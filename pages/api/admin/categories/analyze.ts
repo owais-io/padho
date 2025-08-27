@@ -3,7 +3,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../../../../lib/auth'
-import { prisma } from '../../../../lib/prisma'
+import { contentManager } from '../../../../lib/services/contentManager'
 import OpenAI from 'openai'
 
 const openai = new OpenAI({
@@ -35,28 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Get all categories with their article counts
-    const categoryData = await prisma.openAiSummary.groupBy({
-      by: ['category'],
-      where: {
-        guardianArticle: {
-          isDeleted: false
-        }
-      },
-      _count: {
-        category: true
-      },
-      orderBy: {
-        _count: {
-          category: 'desc'
-        }
-      }
-    })
-
-    const categoriesWithCounts: CategoryWithCount[] = categoryData.map(item => ({
-      category: item.category,
-      count: item._count.category
-    }))
+    // Get all categories with their article counts using ContentManager
+    const categoriesWithCounts = await contentManager.getAllCategories()
 
     if (categoriesWithCounts.length === 0) {
       return res.status(200).json({ suggestions: [] })

@@ -3,7 +3,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../../../../lib/auth'
-import { prisma } from '../../../../lib/prisma'
+import { contentManager } from '../../../../lib/services/contentManager'
 
 interface CategoryMerge {
   originalCategory: string
@@ -47,28 +47,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let totalArticlesUpdated = 0
     let mergedCategoriesCount = 0
 
-    // Execute merges in a transaction
-    await prisma.$transaction(async (tx) => {
-      for (const merge of merges) {
-        // Update all summaries with the original category to the new category
-        const updateResult = await tx.openAiSummary.updateMany({
-          where: {
-            category: merge.originalCategory
-          },
-          data: {
-            category: merge.suggestedCategory
+    // Execute merges by updating MDX files
+    for (const merge of merges) {
+      try {
+        // Get all articles with the original category
+        const articlesWithCategory = await contentManager.getArticlesByCategory(merge.originalCategory)
+        
+        if (articlesWithCategory.length > 0) {
+          // Update each article's category
+          for (const article of articlesWithCategory) {
+            article.category = merge.suggestedCategory
+            await contentManager.saveArticle(article)
+            totalArticlesUpdated++
           }
-        })
-
-        if (updateResult.count > 0) {
-          totalArticlesUpdated += updateResult.count
+          
           mergedCategoriesCount++
-          console.log(`Merged "${merge.originalCategory}" → "${merge.suggestedCategory}" (${updateResult.count} articles)`)
+          console.log(`Merged "${merge.originalCategory}" → "${merge.suggestedCategory}" (${articlesWithCategory.length} articles)`)
         }
+      } catch (error) {
+        console.error(`Error merging category "${merge.originalCategory}":`, error)
+        // Continue with other merges even if one fails
       }
-    }, {
-      timeout: 30000 // 30 second timeout
-    })
+    }
 
     // Log the merge activity
     console.log(`Category merge completed: ${mergedCategoriesCount} categories merged, ${totalArticlesUpdated} articles updated`)

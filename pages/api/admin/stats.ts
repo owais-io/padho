@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../../../lib/auth'
-import { prisma } from '../../../lib/prisma'
+import { contentManager } from '../../../lib/services/contentManager'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Check authentication
@@ -15,38 +15,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const [
-      totalArticles, 
-      totalSummaries, 
-      recentArticles, 
-      publishedArticles,
-      hiddenArticles
-    ] = await Promise.all([
-      prisma.guardianArticle.count(),
-      prisma.openAiSummary.count(),
-      prisma.guardianArticle.count({
-        where: {
-          createdAt: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-          }
-        }
-      }),
-      prisma.guardianArticle.count({
-        where: { isDeleted: false }
-      }),
-      prisma.guardianArticle.count({
-        where: { isDeleted: true }
-      })
-    ])
-
-    res.status(200).json({
-      totalArticles,
-      totalSummaries,
-      recentArticles,
-      publishedArticles,
-      hiddenArticles,
-      successRate: totalArticles > 0 ? (totalSummaries / totalArticles) * 100 : 0
-    })
+    const stats = await contentManager.getStats()
+    
+    res.status(200).json(stats)
   } catch (error) {
     console.error('Error fetching stats:', error)
     res.status(500).json({

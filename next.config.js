@@ -11,6 +11,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'static.guim.co.uk',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
   },
   serverExternalPackages: ['@prisma/client'],

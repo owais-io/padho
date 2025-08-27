@@ -1,41 +1,23 @@
-// lib/services/openai.ts - Basic OpenAI service without database
-
-import OpenAI from 'openai'
+import OpenAI from 'openai';
+import { contentManager } from './contentManager';
+import { generateSlug } from '../utils';
+import type { GuardianArticle } from './guardian';
 
 export interface OpenAISummaryResponse {
-  summary: string
-  tldr: string[]
-  faqs: Array<{ question: string; answer: string }>
-  heading: string
-  category: string
-}
-
-// ← ADD THIS UTILITY FUNCTION
-export function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .trim()
-    // Replace spaces with hyphens
-    .replace(/\s+/g, '-')
-    // Remove special characters except hyphens
-    .replace(/[^\w\-]+/g, '')
-    // Replace multiple hyphens with single hyphen
-    .replace(/\-\-+/g, '-')
-    // Remove leading/trailing hyphens
-    .replace(/^-+/, '')
-    .replace(/-+$/, '')
-    // Limit length to 100 characters
-    .substring(0, 100)
-    .replace(/-+$/, '') // Remove trailing hyphens again after substring
+  summary: string;
+  tldr: string[];
+  faqs: Array<{ question: string; answer: string }>;
+  heading: string;
+  category: string;
 }
 
 export class OpenAIService {
-  private openai: OpenAI
+  private openai: OpenAI;
 
   constructor() {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
-    })
+    });
   }
 
   async summarizeArticle(bodyText: string): Promise<OpenAISummaryResponse> {
@@ -66,7 +48,7 @@ Important guidelines:
 - Create exactly 3 TLDR bullet points emphasizing India angle
 - Generate exactly 5 relevant FAQs from Indian perspective
 - Category should be maximum 3 words, preferably India-focused
-`
+`;
 
     try {
       const completion = await this.openai.chat.completions.create({
@@ -81,64 +63,98 @@ Important guidelines:
             content: prompt
           }
         ],
-        response_format: { type: "json_object" }, // This ensures JSON response
+        response_format: { type: "json_object" },
         temperature: 0.7,
         max_tokens: 2000,
-      })
+      });
 
-      const responseContent = completion.choices[0]?.message?.content
+      const responseContent = completion.choices[0]?.message?.content;
 
       if (!responseContent) {
-        throw new Error('No response from OpenAI')
+        throw new Error('No response from OpenAI');
       }
 
-      // Parse the JSON response (should already be clean JSON)
-      const parsedResponse: OpenAISummaryResponse = JSON.parse(responseContent)
+      const parsedResponse: OpenAISummaryResponse = JSON.parse(responseContent);
 
       // Validate the response structure
       if (!parsedResponse.summary || !parsedResponse.tldr || !parsedResponse.faqs || !parsedResponse.heading || !parsedResponse.category) {
-        throw new Error('Invalid response structure from OpenAI')
+        throw new Error('Invalid response structure from OpenAI');
       }
 
       // Validate array lengths
       if (!Array.isArray(parsedResponse.tldr) || parsedResponse.tldr.length !== 3) {
-        throw new Error('TLDR must be an array of exactly 3 items')
+        throw new Error('TLDR must be an array of exactly 3 items');
       }
 
       if (!Array.isArray(parsedResponse.faqs) || parsedResponse.faqs.length !== 5) {
-        throw new Error('FAQs must be an array of exactly 5 items')
+        throw new Error('FAQs must be an array of exactly 5 items');
       }
 
       // Validate FAQ structure
       for (const faq of parsedResponse.faqs) {
         if (!faq.question || !faq.answer) {
-          throw new Error('Each FAQ must have both question and answer fields')
+          throw new Error('Each FAQ must have both question and answer fields');
         }
       }
 
-      // // Additional validation: Check if heading mentions India
-      const heading = parsedResponse.heading.toLowerCase()
-      // const indiaKeywords = ['india', 'indian', 'delhi', 'mumbai', 'kolkata', 'chennai', 'bangalore', 'hyderabad', 'pune', 'ahmedabad', 'modi', 'new delhi']
-      // const hasIndiaConnection = indiaKeywords.some(keyword => heading.includes(keyword))
-      
-      // if (!hasIndiaConnection) {
-      //   console.warn('Heading does not mention India prominently:', parsedResponse.heading)
-      //   // You could optionally throw an error or modify the heading here
-      // }
-
-      return parsedResponse
+      return parsedResponse;
     } catch (error) {
-      console.error('Error with OpenAI API:', error)
+      console.error('Error with OpenAI API:', error);
       
-      // If it's a JSON parsing error, log the error details
       if (error instanceof SyntaxError) {
-        console.error('Failed to parse OpenAI response as JSON')
-        // Note: completion variable is not accessible in catch block
-        // You could store responseContent in a variable outside try block if needed
+        console.error('Failed to parse OpenAI response as JSON');
       }
       
-      throw new Error('Failed to generate summary with OpenAI')
+      throw new Error('Failed to generate summary with OpenAI');
     }
   }
 
+  // Create MDX file from Guardian article and AI summary
+  async createMDXArticle(guardianArticle: GuardianArticle, summaryData: OpenAISummaryResponse): Promise<string> {
+    try {
+      // Generate unique slug
+      let baseSlug = generateSlug(summaryData.heading);
+      let finalSlug = baseSlug;
+      let counter = 1;
+
+      // Ensure slug uniqueness by checking existing files
+      while (await contentManager.getArticleBySlug(finalSlug)) {
+        finalSlug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+
+      // Create article object
+      const article = {
+        title: summaryData.heading,
+        slug: finalSlug,
+        category: summaryData.category,
+        publishedAt: guardianArticle.webPublicationDate,
+        originalUrl: guardianArticle.webUrl,
+        guardianId: guardianArticle.id,
+        thumbnail: guardianArticle.fields?.thumbnail,
+        section: guardianArticle.sectionName,
+        pillarName: guardianArticle.pillarName,
+        isDeleted: false,
+        tldr: summaryData.tldr,
+        faqs: summaryData.faqs,
+        content: summaryData.summary
+      };
+
+      // Save as MDX file
+      await contentManager.saveArticle(article);
+
+      console.log(`✅ Created MDX article with slug: ${finalSlug}`);
+      return finalSlug;
+
+    } catch (error) {
+      console.error('Error creating MDX article:', error);
+      throw new Error('Failed to create MDX article');
+    }
+  }
+}
+
+// Export convenience function
+export async function createMDXArticle(guardianArticle: GuardianArticle, summaryData: OpenAISummaryResponse): Promise<string> {
+  const openAIService = new OpenAIService();
+  return await openAIService.createMDXArticle(guardianArticle, summaryData);
 }
