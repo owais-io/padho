@@ -174,8 +174,12 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Content files that are auto-generated
+# Content management files
 content/processed-articles.json
+
+# Test files (if any)
+test-*.js
+test-*.ts
 
 # Temporary files
 *.tmp
