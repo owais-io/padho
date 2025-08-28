@@ -11,7 +11,8 @@
       "Bash(node:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(copy:*)"
     ],
     "deny": [],
     "ask": []
