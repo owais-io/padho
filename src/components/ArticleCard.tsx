@@ -15,7 +15,7 @@ export default function ArticleCard({ article, onSummaryOpen }: ArticleCardProps
   };
 
   return (
-    <article className="timeline-item bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100">
+    <article className="timeline-item bg-cream-50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group border border-gold-200">
       {/* Image Container */}
       <div className="relative h-48 sm:h-56 overflow-hidden">
         <Image
@@ -25,11 +25,11 @@ export default function ArticleCard({ article, onSummaryOpen }: ArticleCardProps
           className="object-cover group-hover:scale-105 transition-transform duration-300"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
-        
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300" />
+
         {/* Category Badge */}
         <div className="absolute top-3 left-3">
-          <span className="inline-block bg-primary-600/90 backdrop-blur-sm text-white text-xs font-medium px-3 py-1 rounded-full">
+          <span className="inline-block bg-gradient-to-r from-primary-700 to-primary-600 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md">
             {article.category}
           </span>
         </div>
@@ -38,13 +38,13 @@ export default function ArticleCard({ article, onSummaryOpen }: ArticleCardProps
       {/* Content */}
       <div className="p-5 sm:p-6">
         {/* Date */}
-        <div className="flex items-center space-x-1 text-gray-500 text-sm mb-3">
+        <div className="flex items-center space-x-1 text-sm mb-3" style={{color: '#6b5548'}}>
           <Clock className="w-3.5 h-3.5" />
           <span>{formatDate(article.publishedDate)}</span>
         </div>
 
         {/* Title */}
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 line-clamp-2 group-hover:text-primary-600 transition-colors duration-200">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 line-clamp-2 group-hover:text-accent-700 transition-colors duration-200" style={{color: '#2c1810'}}>
           {article.title}
         </h2>
 
@@ -52,16 +52,17 @@ export default function ArticleCard({ article, onSummaryOpen }: ArticleCardProps
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => onSummaryOpen(article)}
-            className="flex-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors duration-200 text-sm"
+            className="flex-1 bg-gradient-to-r from-primary-700 to-primary-600 hover:from-primary-800 hover:to-primary-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 text-sm shadow-md"
           >
             Read Summary
           </button>
-          
+
           <a
             href={article.guardianUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 px-4 py-2.5 rounded-lg font-medium transition-colors duration-200 text-sm"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 border-2 border-gold-300 hover:border-accent-500 hover:bg-accent-50 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 text-sm"
+            style={{color: '#4a3428'}}
           >
             <ExternalLink className="w-4 h-4" />
             <span className="hidden sm:inline">Original</span>

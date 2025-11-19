@@ -171,3 +171,15 @@ export function getCategoryBySlug(slug: string): Category | undefined {
   const categories = getAllCategories();
   return categories.find((category) => category.slug === slug);
 }
+
+// Get top N categories (for header navigation)
+export function getTopCategories(limit: number = 3): Category[] {
+  const categories = getAllCategories();
+  return categories.slice(0, limit);
+}
+
+// Get remaining categories (after top N)
+export function getRemainingCategories(skip: number = 3): Category[] {
+  const categories = getAllCategories();
+  return categories.slice(skip);
+}
