@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', sans-serif;
+  }
+}
+
+@layer components {
+  .timeline-zigzag {
+    display: grid;
+    gap: 2rem;
+    margin: 0 auto;
+    max-width: 1200px;
+  }
+  
+  @media (min-width: 768px) {
+    .timeline-zigzag {
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+    
+    .timeline-item:nth-child(even) {
+      margin-top: 4rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .timeline-zigzag {
+      gap: 4rem;
+    }
+    
+    .timeline-item:nth-child(even) {
+      margin-top: 6rem;
+    }
+  }
+}
