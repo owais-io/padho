@@ -1,0 +1,68 @@
+# Nginx configuration for padho.net
+# This file will be placed at: /etc/nginx/sites-available/padho.net
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name padho.net www.padho.net;
+
+    root /var/www/padho;
+    index index.html;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json;
+    gzip_disable "MSIE [1-6]\.";
+
+    # Cache static assets
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Next.js static files (_next directory)
+    location /_next/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Main location block - handle Next.js client-side routing
+    location / {
+        try_files $uri $uri.html $uri/ /index.html;
+    }
+
+    # Handle trailing slashes
+    location ~ ^(.+)/$ {
+        try_files $uri $uri/ $1.html $1/index.html /index.html;
+    }
+
+    # Custom error pages
+    error_page 404 /404.html;
+    location = /404.html {
+        internal;
+    }
+
+    # Deny access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Access and error logs
+    access_log /var/log/nginx/padho_access.log;
+    error_log /var/log/nginx/padho_error.log;
+}
+
+# SSL configuration will be added automatically by Certbot
+# After running: sudo certbot --nginx -d padho.net -d www.padho.net
