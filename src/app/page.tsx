@@ -22,10 +22,10 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight" style={{color: '#2c1810'}}>
             Stay Informed with
-            <span className="bg-gradient-to-r from-primary-700 to-accent-700 bg-clip-text text-transparent"> South Asian News</span>
+            <span className="bg-gradient-to-r from-primary-700 to-accent-700 bg-clip-text text-transparent"> India & Pakistan News</span>
           </h1>
           <p className="text-lg sm:text-xl mb-8 leading-relaxed" style={{color: '#4a3428'}}>
-            Discover the most important stories from Pakistan and India with AI-powered summaries
+            Discover the most important stories from India and Pakistan with AI-powered summaries
             that help you stay informed without the overwhelming noise.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -48,6 +48,17 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+          <p className="text-sm mt-6" style={{color: '#6b5548'}}>
+            Articles sourced from{' '}
+            <a
+              href="https://www.theguardian.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium hover:text-accent-700 transition-colors underline"
+            >
+              The Guardian API
+            </a>
+          </p>
         </div>
       </section>
 
