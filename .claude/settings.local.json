@@ -10,7 +10,11 @@
       "Bash(npm run build:*)",
       "Bash(cat:*)",
       "Bash(npx tsc:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(gh run list:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

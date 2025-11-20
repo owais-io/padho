@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, Github } from 'lucide-react';
 import { Category } from '@/lib/types';
 
 interface HeaderProps {
@@ -31,57 +31,70 @@ export default function Header({ topCategories, remainingCategories }: HeaderPro
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium"
-            >
-              Home
-            </Link>
-
-            {topCategories.map((category) => (
+          <div className="hidden lg:flex items-center space-x-6">
+            <nav className="flex items-center space-x-8">
               <Link
-                key={category.id}
-                href={`/category/${category.slug}`}
+                href="/"
                 className="text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium"
               >
-                {category.name}
+                Home
               </Link>
-            ))}
 
-            {/* View More Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center space-x-1 text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium"
-              >
-                <span>View More</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+              {topCategories.map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/category/${category.slug}`}
+                  className="text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium"
+                >
+                  {category.name}
+                </Link>
+              ))}
 
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-cream-50 rounded-lg shadow-lg border border-gold-200 py-2 z-50">
-                  {remainingCategories.map((category) => (
+              {/* View More Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-1 text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium"
+                >
+                  <span>View More</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-cream-50 rounded-lg shadow-lg border border-gold-200 py-2 z-50">
+                    {remainingCategories.map((category) => (
+                      <Link
+                        key={category.id}
+                        href={`/category/${category.slug}`}
+                        className="block px-4 py-2 text-primary-900 hover:bg-accent-50 hover:text-accent-700 transition-colors duration-200"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        {category.name}
+                      </Link>
+                    ))}
                     <Link
-                      key={category.id}
-                      href={`/category/${category.slug}`}
-                      className="block px-4 py-2 text-primary-900 hover:bg-accent-50 hover:text-accent-700 transition-colors duration-200"
+                      href="/categories"
+                      className="block px-4 py-2 text-accent-700 font-medium hover:bg-accent-50 transition-colors duration-200 border-t border-gold-200 mt-2"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      {category.name}
+                      All Categories
                     </Link>
-                  ))}
-                  <Link
-                    href="/categories"
-                    className="block px-4 py-2 text-accent-700 font-medium hover:bg-accent-50 transition-colors duration-200 border-t border-gold-200 mt-2"
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    All Categories
-                  </Link>
-                </div>
-              )}
-            </div>
-          </nav>
+                  </div>
+                )}
+              </div>
+            </nav>
+
+            {/* GitHub Button */}
+            <a
+              href="https://github.com/owais-io/padho"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-primary-700 to-accent-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold"
+            >
+              <Github className="w-5 h-5" />
+              <span>View Code on GitHub</span>
+            </a>
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -122,6 +135,18 @@ export default function Header({ topCategories, remainingCategories }: HeaderPro
               >
                 All Categories
               </Link>
+
+              {/* GitHub Button Mobile */}
+              <a
+                href="https://github.com/owais-io/padho"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center space-x-2 px-5 py-3 bg-gradient-to-r from-primary-700 to-accent-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold mt-4"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Github className="w-5 h-5" />
+                <span>View Code on GitHub</span>
+              </a>
             </div>
           </div>
         )}
