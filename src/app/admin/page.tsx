@@ -42,7 +42,7 @@ export default function AdminPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/articles');
+      const response = await fetch('/api/articles/');
       const data = await response.json();
 
       if (data.success) {
@@ -80,7 +80,7 @@ export default function AdminPage() {
     setError(null);
     setSuccess(null);
     try {
-      const response = await fetch(`/api/guardian?fromDate=${fetchFromDate}&toDate=${fetchToDate}`);
+      const response = await fetch(`/api/guardian/?fromDate=${fetchFromDate}&toDate=${fetchToDate}`);
       const data = await response.json();
 
       if (data.success) {
@@ -139,7 +139,7 @@ export default function AdminPage() {
 
   const handleDeleteArticle = async (articleId: string) => {
     try {
-      const response = await fetch(`/api/articles?id=${articleId}`, {
+      const response = await fetch(`/api/articles/?id=${articleId}`, {
         method: 'DELETE',
       });
       const data = await response.json();
@@ -163,7 +163,7 @@ export default function AdminPage() {
   const handleBulkDelete = async () => {
     try {
       const idsToDelete = Array.from(selectedArticles);
-      const response = await fetch('/api/articles', {
+      const response = await fetch('/api/articles/', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ export default function AdminPage() {
       );
 
       try {
-        const response = await fetch('/api/process', {
+        const response = await fetch('/api/process/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
