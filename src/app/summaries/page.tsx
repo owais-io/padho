@@ -27,7 +27,7 @@ export default function SummariesPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/summaries/');
+      const response = await fetch('/api/summaries');
       const data = await response.json();
 
       if (data.success) {
@@ -77,7 +77,7 @@ export default function SummariesPage() {
     setError(null);
     try {
       // Deploy the summary as MDX
-      const response = await fetch('/api/deploy/', {
+      const response = await fetch('/api/deploy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
