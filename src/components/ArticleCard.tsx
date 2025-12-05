@@ -20,7 +20,7 @@ export default function ArticleCard({ article, onSummaryOpen }: ArticleCardProps
   return (
     <article className="timeline-item bg-cream-50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group border border-gold-200">
       {/* Image Container */}
-      <div className="relative h-48 sm:h-56 overflow-hidden">
+      <div className="relative w-full aspect-video overflow-hidden">
         <Image
           src={article.imageUrl}
           alt={article.title}
