@@ -96,13 +96,39 @@ export async function GET(request: Request) {
       page++; // Move to next page
     }
 
-    // FILTER: Only keep articles that have "India" OR "Modi" OR "Pakistan" in the title (case-insensitive)
+    // FILTER: Only keep articles that have relevant keywords in the title (case-insensitive)
+    const keywords = [
+      // Core countries
+      'india', 'modi', 'pakistan',
+      // Major cities
+      'kashmir', 'delhi', 'mumbai', 'islamabad', 'karachi', 'lahore',
+      'bengaluru', 'bangalore', 'hyderabad', 'chennai', 'kolkata', 'peshawar',
+      // States and regions
+      'punjab', 'bangladesh', 'gujarat', 'kerala', 'rajasthan', 'tamil nadu', 'balochistan',
+      // Political leaders and parties
+      'gandhi', 'bjp', 'congress', 'imran khan', 'sharif', 'bhutto',
+      'rss', 'hindutva', 'amit shah', 'rahul gandhi', 'partition', 'nehru',
+      // Religious and cultural
+      'hindu', 'muslim', 'sikh', 'taj mahal',
+      // Security and conflict
+      'border', 'terrorism', 'nuclear', 'militant', 'taliban', 'afghanistan',
+      'pulwama', 'kargil', 'ceasefire', 'drone',
+      // Sports
+      'cricket', 'kohli', 'tendulkar', 'ipl',
+      // Business and economy
+      'bollywood', 'rupee', 'tata', 'reliance', 'adani', 'ambani',
+      // Regional neighbors
+      'china', 'nepal', 'sri lanka',
+      // Geographic and environmental
+      'monsoon', 'ganges', 'ganga', 'indus', 'himalaya'
+    ];
+
     const filteredArticles = allFetchedArticles.filter((article: any) => {
       const title = article.webTitle.toLowerCase();
-      return title.includes('india') || title.includes('modi') || title.includes('pakistan');
+      return keywords.some(keyword => title.includes(keyword));
     });
 
-    console.log(`Filtered ${allFetchedArticles.length} articles down to ${filteredArticles.length} articles with "India", "Modi", or "Pakistan" in title`);
+    console.log(`Filtered ${allFetchedArticles.length} articles down to ${filteredArticles.length} articles with India/Pakistan-related keywords in title`);
 
     // Filter out duplicate articles (already fetched before)
     const articleIds = filteredArticles.map((article: any) => article.id);
