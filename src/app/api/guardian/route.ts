@@ -120,7 +120,17 @@ export async function GET(request: Request) {
       // Regional neighbors
       'china', 'nepal', 'sri lanka',
       // Geographic and environmental
-      'monsoon', 'ganges', 'ganga', 'indus', 'himalaya'
+      'monsoon', 'ganges', 'ganga', 'indus', 'himalaya',
+      // Iran related
+      'iran', 'tehran', 'iranian', 'khamenei', 'rouhani', 'raisi',
+      'persian', 'shiite', 'shia', 'hormuz', 'isfahan', 'mashhad', 'persian gulf',
+      // Afghanistan related (additional)
+      'kabul', 'kandahar', 'afghan', 'panjshir', 'herat', 'mazar',
+      // China related (additional)
+      'beijing', 'shanghai', 'xi jinping', 'tibet', 'taiwan', 'hong kong',
+      'uyghur', 'xinjiang', 'ladakh', 'pla',
+      // Sri Lanka related (additional)
+      'colombo', 'sinhalese', 'tamil tigers', 'rajapaksa', 'gotabaya', 'kandy'
     ];
 
     const filteredArticles = allFetchedArticles.filter((article: any) => {

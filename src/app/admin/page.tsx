@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, Trash2, RefreshCw, Download, Cpu, Link as LinkIcon, X } from 'lucide-react';
+import { Clock, Trash2, RefreshCw, Download, Cpu, Link as LinkIcon, X, Filter } from 'lucide-react';
 
 interface GuardianArticle {
   id: string;
@@ -35,6 +35,7 @@ export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [fetchFromDate, setFetchFromDate] = useState<string>('');
   const [fetchToDate, setFetchToDate] = useState<string>('');
+  const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
   const articlesPerPage = 100;
 
   // Load articles from database
@@ -92,7 +93,7 @@ export default function AdminPage() {
 
       if (data.success) {
         // Show success message with statistics including filtered count
-        const message = `Fetched ${data.fetched} articles from ${fetchFromDate} to ${fetchToDate}, filtered to ${data.filtered} with India/Modi: ${data.new} new, ${data.duplicates} duplicates skipped`;
+        const message = `Fetched ${data.fetched} articles from ${fetchFromDate} to ${fetchToDate}, filtered to ${data.filtered} with regional keywords: ${data.new} new, ${data.duplicates} duplicates skipped`;
         setSuccess(message);
 
         // Reload from database to show saved articles
@@ -142,6 +143,22 @@ export default function AdminPage() {
       newSelected.delete(articleId);
     }
     setSelectedArticles(newSelected);
+  };
+
+  const handleSectionToggle = (section: string) => {
+    const newSelected = new Set(selectedSections);
+    if (newSelected.has(section)) {
+      newSelected.delete(section);
+    } else {
+      newSelected.add(section);
+    }
+    setSelectedSections(newSelected);
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
+  const clearSectionFilter = () => {
+    setSelectedSections(new Set());
+    setCurrentPage(1);
   };
 
   const handleDeleteArticle = async (articleId: string) => {
@@ -315,11 +332,19 @@ export default function AdminPage() {
     }).format(date);
   };
 
+  // Get unique sections from articles
+  const uniqueSections = Array.from(new Set(articles.map(article => article.sectionName))).sort();
+
+  // Filter articles by selected sections
+  const filteredArticles = selectedSections.size > 0
+    ? articles.filter(article => selectedSections.has(article.sectionName))
+    : articles;
+
   // Pagination calculations
-  const totalPages = Math.ceil(articles.length / articlesPerPage);
+  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
   const startIndex = (currentPage - 1) * articlesPerPage;
   const endIndex = startIndex + articlesPerPage;
-  const paginatedArticles = articles.slice(startIndex, endIndex);
+  const paginatedArticles = filteredArticles.slice(startIndex, endIndex);
 
   // Check if all articles on current page are selected
   const selectedOnPage = paginatedArticles.filter(article => selectedArticles.has(article.id)).length;
@@ -336,7 +361,7 @@ export default function AdminPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
               <p className="mt-1 text-sm text-gray-600">
-                Manage Guardian articles about India & Modi
+                Manage Guardian articles about South Asia, Iran, China & neighboring regions
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -505,6 +530,57 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* Section Filter */}
+        {uniqueSections.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                Filter by Section
+              </h3>
+              {selectedSections.size > 0 && (
+                <button
+                  onClick={clearSectionFilter}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Clear Filter ({selectedSections.size})
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {uniqueSections.map((section) => {
+                const count = articles.filter(a => a.sectionName === section).length;
+                const isSelected = selectedSections.has(section);
+                return (
+                  <label
+                    key={section}
+                    className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleSectionToggle(section)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs font-medium text-gray-900 truncate block">
+                        {section}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {count}
+                      </span>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Stats and Actions Bar */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex items-center justify-between">
@@ -517,6 +593,12 @@ export default function AdminPage() {
                 <p className="text-sm text-gray-600">Loaded</p>
                 <p className="text-2xl font-bold text-gray-900">{articles.length}</p>
               </div>
+              {selectedSections.size > 0 && (
+                <div>
+                  <p className="text-sm text-gray-600">Filtered</p>
+                  <p className="text-2xl font-bold text-blue-600">{filteredArticles.length}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-gray-600">Current Page</p>
                 <p className="text-2xl font-bold text-gray-900">{currentPage}/{totalPages}</p>
@@ -689,7 +771,10 @@ export default function AdminPage() {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mt-4">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-600">
-                    Showing {startIndex + 1} to {Math.min(endIndex, articles.length)} of {articles.length} articles
+                    Showing {startIndex + 1} to {Math.min(endIndex, filteredArticles.length)} of {filteredArticles.length} articles
+                    {selectedSections.size > 0 && (
+                      <span className="text-blue-600 ml-1">(filtered from {articles.length})</span>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
