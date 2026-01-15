@@ -21,7 +21,8 @@
       "Bash(taskkill //F //PID 9056)",
       "Bash(tasklist:*)",
       "Bash(npx kill-port:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
