@@ -10,6 +10,7 @@ interface Summary {
   transformedTitle: string;
   summary: string;
   section: string | null;
+  category: string | null;
   imageUrl: string | null;
   publishedDate: string | null;
   processedAt: string;
@@ -85,6 +86,7 @@ export default function SummariesPage() {
           title: summary.transformedTitle,
           summary: summary.summary,
           section: summary.section,
+          category: summary.category,
           imageUrl: summary.imageUrl,
           publishedDate: summary.publishedDate,
         }),
@@ -211,10 +213,10 @@ export default function SummariesPage() {
                       alt={summary.transformedTitle}
                       className="w-full h-full object-cover"
                     />
-                    {summary.section && (
+                    {(summary.category || summary.section) && (
                       <div className="absolute top-3 left-3">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-600 text-white shadow-lg">
-                          {summary.section}
+                          {summary.category || summary.section}
                         </span>
                       </div>
                     )}

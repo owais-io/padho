@@ -33,8 +33,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const topCategories = getTopCategories();
-  const remainingCategories = getRemainingCategories();
+  const topCategories = getTopCategories(8);
+  const remainingCategories = getRemainingCategories(8);
 
   return (
     <html lang="en" className="scroll-smooth">

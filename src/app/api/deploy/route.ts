@@ -6,7 +6,7 @@ import path from 'path';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { guardianId, title, summary, section, imageUrl, publishedDate } = body;
+    const { guardianId, title, summary, section, category, imageUrl, publishedDate } = body;
 
     if (!guardianId || !title || !summary) {
       return NextResponse.json(
@@ -31,6 +31,7 @@ export async function POST(request: Request) {
 title: "${title.replace(/"/g, '\\"')}"
 summary: "${summary.replace(/"/g, '\\"')}"
 section: "${section || 'news'}"
+category: "${category || section || 'News'}"
 imageUrl: "${imageUrl || ''}"
 publishedAt: "${formattedDate}"
 guardianId: "${guardianId}"

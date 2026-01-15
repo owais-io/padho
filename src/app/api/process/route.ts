@@ -93,6 +93,7 @@ export async function POST(request: Request) {
           transformedTitle: processed.transformedTitle,
           summary: processed.summary,
           section: article.sectionName,
+          category: processed.category,
           imageUrl: article.thumbnail || undefined,
           publishedDate: article.webPublicationDate,
         });
@@ -107,6 +108,7 @@ export async function POST(request: Request) {
           status: 'success',
           transformedTitle: processed.transformedTitle,
           summary: processed.summary,
+          category: processed.category,
         });
 
       } catch (error) {

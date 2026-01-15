@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, ChevronDown, Github } from 'lucide-react';
+import { Menu, X, Github } from 'lucide-react';
 import { Category } from '@/lib/types';
 
 interface HeaderProps {
@@ -12,14 +12,18 @@ interface HeaderProps {
 
 export default function Header({ topCategories, remainingCategories }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Split categories into two rows
+  const midPoint = Math.ceil(topCategories.length / 2);
+  const firstRowCategories = topCategories.slice(0, midPoint);
+  const secondRowCategories = topCategories.slice(midPoint);
 
   return (
     <header className="sticky top-0 z-50 bg-cream-100/95 backdrop-blur-md border-b border-gold-200/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex items-center py-3">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
             <div className="bg-gradient-to-r from-primary-700 to-accent-600 p-2 rounded-lg shadow-md">
               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2L2 7v10c0 5.55 3.84 9.65 9 11.09 5.16-1.44 9-5.54 9-11.09V7l-10-5z"/>
@@ -30,71 +34,62 @@ export default function Header({ topCategories, remainingCategories }: HeaderPro
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-6">
-            <nav className="flex items-center space-x-8">
+          {/* Desktop Navigation - Two Rows - Centered */}
+          <nav className="hidden lg:flex flex-1 flex-col items-center space-y-1 mx-8">
+            {/* First Row */}
+            <div className="flex items-center justify-evenly w-full">
               <Link
                 href="/"
-                className="text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium"
+                className="text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium text-sm"
               >
                 Home
               </Link>
-
-              {topCategories.map((category) => (
+              {firstRowCategories.map((category) => (
                 <Link
                   key={category.id}
                   href={`/category/${category.slug}`}
-                  className="text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium"
+                  className="text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium text-sm"
                 >
                   {category.name}
                 </Link>
               ))}
+            </div>
 
-              {/* View More Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-1 text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium"
+            {/* Second Row */}
+            <div className="flex items-center justify-evenly w-full">
+              {secondRowCategories.map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/category/${category.slug}`}
+                  className="text-primary-900 hover:text-accent-600 transition-colors duration-200 font-medium text-sm"
                 >
-                  <span>View More</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
+                  {category.name}
+                </Link>
+              ))}
+              {/* View More Button - Opens in new tab */}
+              {remainingCategories.length > 0 && (
+                <a
+                  href="/categories"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent-600 hover:text-accent-800 transition-colors duration-200 font-semibold text-sm"
+                >
+                  View More →
+                </a>
+              )}
+            </div>
+          </nav>
 
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-cream-50 rounded-lg shadow-lg border border-gold-200 py-2 z-50">
-                    {remainingCategories.map((category) => (
-                      <Link
-                        key={category.id}
-                        href={`/category/${category.slug}`}
-                        className="block px-4 py-2 text-primary-900 hover:bg-accent-50 hover:text-accent-700 transition-colors duration-200"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        {category.name}
-                      </Link>
-                    ))}
-                    <Link
-                      href="/categories"
-                      className="block px-4 py-2 text-accent-700 font-medium hover:bg-accent-50 transition-colors duration-200 border-t border-gold-200 mt-2"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      All Categories
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </nav>
-
-            {/* GitHub Button */}
-            <a
-              href="https://github.com/owais-io/padho"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-primary-700 to-accent-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold"
-            >
-              <Github className="w-5 h-5" />
-              <span>View Code on GitHub</span>
-            </a>
-          </div>
+          {/* GitHub Button */}
+          <a
+            href="https://github.com/owais-io/padho"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden lg:flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-primary-700 to-accent-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold flex-shrink-0"
+          >
+            <Github className="w-5 h-5" />
+            <span>View Code on GitHub</span>
+          </a>
 
           {/* Mobile Menu Button */}
           <button
@@ -128,13 +123,18 @@ export default function Header({ topCategories, remainingCategories }: HeaderPro
                 </Link>
               ))}
 
-              <Link
-                href="/categories"
-                className="text-accent-700 font-medium hover:text-accent-800 transition-colors duration-200 py-2 border-t border-gold-200/50 mt-2 pt-4"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                All Categories
-              </Link>
+              {/* View More Button - Opens in new tab */}
+              {remainingCategories.length > 0 && (
+                <a
+                  href="/categories"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent-700 font-semibold hover:text-accent-800 transition-colors duration-200 py-2 border-t border-gold-200/50 mt-2 pt-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  View More →
+                </a>
+              )}
 
               {/* GitHub Button Mobile */}
               <a

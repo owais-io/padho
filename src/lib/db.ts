@@ -79,6 +79,12 @@ if (tableInfo && tableInfo.sql.includes('FOREIGN KEY')) {
 }
 // If table exists without FK, do nothing
 
+// Add category column to summaries table if it doesn't exist
+const categoryColumnExists = db.prepare("SELECT name FROM pragma_table_info('summaries') WHERE name='category'").get();
+if (!categoryColumnExists) {
+  db.exec(`ALTER TABLE summaries ADD COLUMN category TEXT`);
+}
+
 export interface Article {
   id: string;
   type: string;
@@ -101,6 +107,7 @@ export interface Summary {
   transformedTitle: string;
   summary: string;
   section: string | null;
+  category: string | null;
   imageUrl: string | null;
   publishedDate: string | null;
   processedAt: string;
@@ -222,13 +229,14 @@ export function saveSummary(data: {
   transformedTitle: string;
   summary: string;
   section?: string;
+  category?: string;
   imageUrl?: string;
   publishedDate?: string;
 }) {
   const stmt = db.prepare(`
     INSERT OR REPLACE INTO summaries (
-      guardianId, transformedTitle, summary, section, imageUrl, publishedDate
-    ) VALUES (?, ?, ?, ?, ?, ?)
+      guardianId, transformedTitle, summary, section, category, imageUrl, publishedDate
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
   return stmt.run(
@@ -236,6 +244,7 @@ export function saveSummary(data: {
     data.transformedTitle,
     data.summary,
     data.section || null,
+    data.category || null,
     data.imageUrl || null,
     data.publishedDate || null
   );

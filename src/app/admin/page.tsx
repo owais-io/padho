@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, Trash2, RefreshCw, Download, Cpu, Link as LinkIcon, X, Filter } from 'lucide-react';
+import { Clock, Trash2, RefreshCw, Download, Cpu, Link as LinkIcon, X, Filter, Tag, Play, Square } from 'lucide-react';
 
 interface GuardianArticle {
   id: string;
@@ -37,6 +37,13 @@ export default function AdminPage() {
   const [fetchToDate, setFetchToDate] = useState<string>('');
   const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
   const articlesPerPage = 100;
+
+  // Category generation state
+  const [categoryGenRunning, setCategoryGenRunning] = useState(false);
+  const [categoryGenRemaining, setCategoryGenRemaining] = useState<number | null>(null);
+  const [categoryGenProcessed, setCategoryGenProcessed] = useState<{ title: string; category: string } | null>(null);
+  const [categoryGenError, setCategoryGenError] = useState<string | null>(null);
+  const [shouldStopCategoryGen, setShouldStopCategoryGen] = useState(false);
 
   // Load articles from database
   const loadArticlesFromDB = async () => {
@@ -112,8 +119,73 @@ export default function AdminPage() {
     }
   };
 
+  // Check category generation status
+  const checkCategoryStatus = async () => {
+    try {
+      const response = await fetch('/api/generate-categories');
+      const data = await response.json();
+      if (data.success) {
+        setCategoryGenRemaining(data.count);
+      }
+    } catch (err) {
+      console.error('Failed to check category status:', err);
+    }
+  };
+
+  // Process next category
+  const processNextCategory = async () => {
+    if (shouldStopCategoryGen) {
+      setCategoryGenRunning(false);
+      setShouldStopCategoryGen(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/generate-categories', {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        if (data.done) {
+          setCategoryGenRunning(false);
+          setCategoryGenRemaining(0);
+          setCategoryGenProcessed(null);
+        } else {
+          setCategoryGenProcessed({
+            title: data.processed.title,
+            category: data.processed.category,
+          });
+          setCategoryGenRemaining(data.remaining);
+          // Continue processing
+          setTimeout(processNextCategory, 500);
+        }
+      } else {
+        setCategoryGenError(data.error || 'Failed to generate category');
+        setCategoryGenRunning(false);
+      }
+    } catch (err) {
+      setCategoryGenError(err instanceof Error ? err.message : 'Unknown error');
+      setCategoryGenRunning(false);
+    }
+  };
+
+  // Start category generation
+  const startCategoryGeneration = () => {
+    setCategoryGenRunning(true);
+    setCategoryGenError(null);
+    setShouldStopCategoryGen(false);
+    processNextCategory();
+  };
+
+  // Stop category generation
+  const stopCategoryGeneration = () => {
+    setShouldStopCategoryGen(true);
+  };
+
   useEffect(() => {
     loadArticlesFromDB();
+    checkCategoryStatus();
   }, []);
 
   const handleSelectAll = (checked: boolean) => {
@@ -418,6 +490,84 @@ export default function AdminPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Category Generation Section */}
+        {categoryGenRemaining !== null && categoryGenRemaining > 0 && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200 p-6 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-purple-100 p-3 rounded-full">
+                  <Tag className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Generate Missing Categories</h2>
+                  <p className="text-sm text-gray-600">
+                    {categoryGenRemaining} articles without Ollama-generated categories
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                {categoryGenRunning && categoryGenProcessed && (
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-purple-700 truncate max-w-xs">
+                      {categoryGenProcessed.title}
+                    </p>
+                    <p className="text-xs text-purple-600">
+                      → {categoryGenProcessed.category}
+                    </p>
+                  </div>
+                )}
+
+                {!categoryGenRunning ? (
+                  <button
+                    onClick={startCategoryGeneration}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                  >
+                    <Play className="w-4 h-4" />
+                    Start Generating
+                  </button>
+                ) : (
+                  <button
+                    onClick={stopCategoryGeneration}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    <Square className="w-4 h-4" />
+                    Stop
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {categoryGenRunning && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 text-sm text-purple-700">
+                  <div className="flex-1 bg-purple-200 rounded-full h-2 overflow-hidden">
+                    <div className="bg-purple-600 h-full rounded-full animate-pulse w-full"></div>
+                  </div>
+                  <span className="text-xs font-medium">{categoryGenRemaining} remaining</span>
+                </div>
+              </div>
+            )}
+
+            {categoryGenError && (
+              <div className="mt-4 p-3 bg-red-100 rounded-lg text-sm text-red-700">
+                Error: {categoryGenError}
+              </div>
+            )}
+          </div>
+        )}
+
+        {categoryGenRemaining === 0 && (
+          <div className="bg-green-50 rounded-lg border border-green-200 p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <Tag className="w-5 h-5 text-green-600" />
+              <p className="text-sm text-green-800 font-medium">
+                All articles have Ollama-generated categories
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Processing Queue */}
         {processingQueue.length > 0 && (
           <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-200 p-6 mb-6">
