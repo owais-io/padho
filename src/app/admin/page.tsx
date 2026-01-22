@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, Trash2, RefreshCw, Download, Cpu, Link as LinkIcon, X, Filter, Tag, Play, Square } from 'lucide-react';
+import { Clock, Trash2, RefreshCw, Download, Cpu, Link as LinkIcon, X, Filter, Tag, Play, Square, Plus, Key } from 'lucide-react';
 
 interface GuardianArticle {
   id: string;
@@ -24,6 +24,12 @@ interface QueueItem {
   error?: string;
 }
 
+interface Keyword {
+  id: number;
+  keyword: string;
+  createdAt: string;
+}
+
 export default function AdminPage() {
   const [articles, setArticles] = useState<GuardianArticle[]>([]);
   const [selectedArticles, setSelectedArticles] = useState<Set<string>>(new Set());
@@ -44,6 +50,13 @@ export default function AdminPage() {
   const [categoryGenProcessed, setCategoryGenProcessed] = useState<{ title: string; category: string } | null>(null);
   const [categoryGenError, setCategoryGenError] = useState<string | null>(null);
   const [shouldStopCategoryGen, setShouldStopCategoryGen] = useState(false);
+
+  // Keywords state
+  const [keywords, setKeywords] = useState<Keyword[]>([]);
+  const [newKeyword, setNewKeyword] = useState('');
+  const [keywordLoading, setKeywordLoading] = useState(false);
+  const [keywordError, setKeywordError] = useState<string | null>(null);
+  const [showKeywords, setShowKeywords] = useState(false);
 
   // Load articles from database
   const loadArticlesFromDB = async () => {
@@ -183,9 +196,74 @@ export default function AdminPage() {
     setShouldStopCategoryGen(true);
   };
 
+  // Load keywords from database
+  const loadKeywords = async () => {
+    setKeywordLoading(true);
+    setKeywordError(null);
+    try {
+      const response = await fetch('/api/keywords');
+      const data = await response.json();
+      if (data.success) {
+        setKeywords(data.keywords);
+      } else {
+        setKeywordError(data.error || 'Failed to load keywords');
+      }
+    } catch (err) {
+      setKeywordError('Failed to load keywords');
+      console.error('Load keywords error:', err);
+    } finally {
+      setKeywordLoading(false);
+    }
+  };
+
+  // Add a new keyword
+  const handleAddKeyword = async () => {
+    if (!newKeyword.trim()) return;
+
+    setKeywordError(null);
+    try {
+      const response = await fetch('/api/keywords', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword: newKeyword.trim() }),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setKeywords(prev => [...prev, { id: data.id, keyword: data.keyword, createdAt: new Date().toISOString() }].sort((a, b) => a.keyword.localeCompare(b.keyword)));
+        setNewKeyword('');
+      } else {
+        setKeywordError(data.error || 'Failed to add keyword');
+      }
+    } catch (err) {
+      setKeywordError('Failed to add keyword');
+      console.error('Add keyword error:', err);
+    }
+  };
+
+  // Delete a keyword
+  const handleDeleteKeyword = async (id: number) => {
+    try {
+      const response = await fetch(`/api/keywords?id=${id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setKeywords(prev => prev.filter(k => k.id !== id));
+      } else {
+        setKeywordError(data.error || 'Failed to delete keyword');
+      }
+    } catch (err) {
+      setKeywordError('Failed to delete keyword');
+      console.error('Delete keyword error:', err);
+    }
+  };
+
   useEffect(() => {
     loadArticlesFromDB();
     checkCategoryStatus();
+    loadKeywords();
   }, []);
 
   const handleSelectAll = (checked: boolean) => {
@@ -490,6 +568,76 @@ export default function AdminPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Keywords Management Section */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Key className="w-4 h-4" />
+              Filter Keywords ({keywords.length})
+            </h3>
+            <button
+              onClick={() => setShowKeywords(!showKeywords)}
+              className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+            >
+              {showKeywords ? 'Hide Keywords' : 'Show Keywords'}
+            </button>
+          </div>
+
+          {showKeywords && (
+            <>
+              {/* Add new keyword */}
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  type="text"
+                  value={newKeyword}
+                  onChange={(e) => setNewKeyword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword()}
+                  placeholder="Add new keyword..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button
+                  onClick={handleAddKeyword}
+                  disabled={!newKeyword.trim()}
+                  className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add
+                </button>
+              </div>
+
+              {keywordError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 text-sm">
+                  {keywordError}
+                </div>
+              )}
+
+              {keywordLoading ? (
+                <div className="text-center py-4">
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto text-blue-600" />
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
+                  {keywords.map((kw) => (
+                    <div
+                      key={kw.id}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 rounded-full text-sm group hover:bg-gray-200 transition-colors"
+                    >
+                      <span className="text-gray-700">{kw.keyword}</span>
+                      <button
+                        onClick={() => handleDeleteKeyword(kw.id)}
+                        className="text-gray-400 hover:text-red-600 transition-colors ml-1"
+                        title="Delete keyword"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         {/* Category Generation Section */}
         {categoryGenRemaining !== null && categoryGenRemaining > 0 && (
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200 p-6 mb-6">

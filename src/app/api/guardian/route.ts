@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { saveArticles, filterNewArticleIds } from '@/lib/db';
+import { saveArticles, filterNewArticleIds, getKeywordStrings } from '@/lib/db';
 
 // Helper function to add delay between requests (rate limiting)
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -97,41 +97,8 @@ export async function GET(request: Request) {
     }
 
     // FILTER: Only keep articles that have relevant keywords in the title (case-insensitive)
-    const keywords = [
-      // Core countries
-      'india', 'modi', 'pakistan',
-      // Major cities
-      'kashmir', 'delhi', 'mumbai', 'islamabad', 'karachi', 'lahore',
-      'bengaluru', 'bangalore', 'hyderabad', 'chennai', 'kolkata', 'peshawar',
-      // States and regions
-      'punjab', 'bangladesh', 'gujarat', 'kerala', 'rajasthan', 'tamil nadu', 'balochistan',
-      // Political leaders and parties
-      'gandhi', 'bjp', 'congress', 'imran khan', 'sharif', 'bhutto',
-      'rss', 'hindutva', 'amit shah', 'rahul gandhi', 'partition', 'nehru',
-      // Religious and cultural
-      'hindu', 'muslim', 'sikh', 'taj mahal',
-      // Security and conflict
-      'border', 'terrorism', 'nuclear', 'militant', 'taliban', 'afghanistan',
-      'pulwama', 'kargil', 'ceasefire', 'drone',
-      // Sports
-      'cricket', 'kohli', 'tendulkar', 'ipl',
-      // Business and economy
-      'bollywood', 'rupee', 'tata', 'reliance', 'adani', 'ambani',
-      // Regional neighbors
-      'china', 'nepal', 'sri lanka',
-      // Geographic and environmental
-      'monsoon', 'ganges', 'ganga', 'indus', 'himalaya',
-      // Iran related
-      'iran', 'tehran', 'iranian', 'khamenei', 'rouhani', 'raisi',
-      'persian', 'shiite', 'shia', 'hormuz', 'isfahan', 'mashhad', 'persian gulf',
-      // Afghanistan related (additional)
-      'kabul', 'kandahar', 'afghan', 'panjshir', 'herat', 'mazar',
-      // China related (additional)
-      'beijing', 'shanghai', 'xi jinping', 'tibet', 'taiwan', 'hong kong',
-      'uyghur', 'xinjiang', 'ladakh', 'pla',
-      // Sri Lanka related (additional)
-      'colombo', 'sinhalese', 'tamil tigers', 'rajapaksa', 'gotabaya', 'kandy'
-    ];
+    // Keywords are fetched from the database
+    const keywords = getKeywordStrings();
 
     const filteredArticles = allFetchedArticles.filter((article: any) => {
       const title = article.webTitle.toLowerCase();

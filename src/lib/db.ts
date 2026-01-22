@@ -85,6 +85,63 @@ if (!categoryColumnExists) {
   db.exec(`ALTER TABLE summaries ADD COLUMN category TEXT`);
 }
 
+// Create keywords table if it doesn't exist
+db.exec(`
+  CREATE TABLE IF NOT EXISTS keywords (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    keyword TEXT UNIQUE NOT NULL,
+    createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Seed default keywords if table is empty
+const keywordCount = db.prepare('SELECT COUNT(*) as count FROM keywords').get() as { count: number };
+if (keywordCount.count === 0) {
+  const defaultKeywords = [
+    // Core countries
+    'india', 'modi', 'pakistan',
+    // Major cities
+    'kashmir', 'delhi', 'mumbai', 'islamabad', 'karachi', 'lahore',
+    'bengaluru', 'bangalore', 'hyderabad', 'chennai', 'kolkata', 'peshawar',
+    // States and regions
+    'punjab', 'bangladesh', 'gujarat', 'kerala', 'rajasthan', 'tamil nadu', 'balochistan',
+    // Political leaders and parties
+    'gandhi', 'bjp', 'congress', 'imran khan', 'sharif', 'bhutto',
+    'rss', 'hindutva', 'amit shah', 'rahul gandhi', 'partition', 'nehru',
+    // Religious and cultural
+    'hindu', 'muslim', 'sikh', 'taj mahal',
+    // Security and conflict
+    'border', 'terrorism', 'nuclear', 'militant', 'taliban', 'afghanistan',
+    'pulwama', 'kargil', 'ceasefire', 'drone',
+    // Sports
+    'cricket', 'kohli', 'tendulkar', 'ipl',
+    // Business and economy
+    'bollywood', 'rupee', 'tata', 'reliance', 'adani', 'ambani',
+    // Regional neighbors
+    'china', 'nepal', 'sri lanka',
+    // Geographic and environmental
+    'monsoon', 'ganges', 'ganga', 'indus', 'himalaya',
+    // Iran related
+    'iran', 'tehran', 'iranian', 'khamenei', 'rouhani', 'raisi',
+    'persian', 'shiite', 'shia', 'hormuz', 'isfahan', 'mashhad', 'persian gulf',
+    // Afghanistan related
+    'kabul', 'kandahar', 'afghan', 'panjshir', 'herat', 'mazar',
+    // China related
+    'beijing', 'shanghai', 'xi jinping', 'tibet', 'taiwan', 'hong kong',
+    'uyghur', 'xinjiang', 'ladakh', 'pla',
+    // Sri Lanka related
+    'colombo', 'sinhalese', 'tamil tigers', 'rajapaksa', 'gotabaya', 'kandy'
+  ];
+
+  const insertKeyword = db.prepare('INSERT OR IGNORE INTO keywords (keyword) VALUES (?)');
+  const insertMany = db.transaction((keywords: string[]) => {
+    for (const keyword of keywords) {
+      insertKeyword.run(keyword);
+    }
+  });
+  insertMany(defaultKeywords);
+}
+
 export interface Article {
   id: string;
   type: string;
@@ -111,6 +168,12 @@ export interface Summary {
   imageUrl: string | null;
   publishedDate: string | null;
   processedAt: string;
+}
+
+export interface Keyword {
+  id: number;
+  keyword: string;
+  createdAt: string;
 }
 
 // Insert or update article
@@ -278,6 +341,56 @@ export function deleteSummary(guardianId: string) {
 // Count total summaries
 export function countSummaries(): number {
   const stmt = db.prepare('SELECT COUNT(*) as count FROM summaries');
+  const result = stmt.get() as { count: number };
+  return result.count;
+}
+
+// ===== Keyword Management Functions =====
+
+// Get all keywords
+export function getAllKeywords(): Keyword[] {
+  const stmt = db.prepare('SELECT * FROM keywords ORDER BY keyword ASC');
+  return stmt.all() as Keyword[];
+}
+
+// Get all keyword strings (for filtering)
+export function getKeywordStrings(): string[] {
+  const stmt = db.prepare('SELECT keyword FROM keywords ORDER BY keyword ASC');
+  const results = stmt.all() as { keyword: string }[];
+  return results.map(row => row.keyword);
+}
+
+// Add a new keyword
+export function addKeyword(keyword: string): { success: boolean; id?: number; error?: string } {
+  try {
+    const stmt = db.prepare('INSERT INTO keywords (keyword) VALUES (?)');
+    const result = stmt.run(keyword.toLowerCase().trim());
+    return { success: true, id: result.lastInsertRowid as number };
+  } catch (err: any) {
+    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return { success: false, error: 'Keyword already exists' };
+    }
+    return { success: false, error: err.message };
+  }
+}
+
+// Delete a keyword by ID
+export function deleteKeyword(id: number): { success: boolean; error?: string } {
+  try {
+    const stmt = db.prepare('DELETE FROM keywords WHERE id = ?');
+    const result = stmt.run(id);
+    if (result.changes === 0) {
+      return { success: false, error: 'Keyword not found' };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+// Count total keywords
+export function countKeywords(): number {
+  const stmt = db.prepare('SELECT COUNT(*) as count FROM keywords');
   const result = stmt.get() as { count: number };
   return result.count;
 }
