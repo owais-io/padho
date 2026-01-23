@@ -22,7 +22,8 @@
       "Bash(tasklist:*)",
       "Bash(npx kill-port:*)",
       "Bash(grep:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(head:*)"
     ],
     "deny": [],
     "ask": []

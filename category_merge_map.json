@@ -1,0 +1,88 @@
+{
+  "Iran Protests": "Iran Civil Unrest",
+  "Iran Politics": "Iran Internal Affairs",
+  "Iran Censorship": "Iran Civil Unrest",
+  "Iran Human Rights": "Iran Civil Unrest",
+  "Iran Sanctions": "Iran Economic Policy",
+  "Iran Economy": "Iran Economic Policy",
+  "Cryptocurrency Sanctions": "Iran Economic Policy",
+  
+  "India News": "India Domestic Affairs",
+  "India Society": "India Domestic Affairs",
+  "India Politics": "India Domestic Affairs",
+  "India Security": "India Domestic Affairs",
+  "India Terrorism": "India Domestic Affairs",
+  "Indian Heritage": "Indian Culture Heritage",
+  "Indian Cuisine": "Indian Culture Heritage",
+  
+  "Pakistan Security": "Pakistan Domestic Affairs",
+  "Pakistan Society": "Pakistan Domestic Affairs",
+  "Pakistan Politics": "Pakistan Domestic Affairs",
+  "Pakistan Health": "Pakistan Domestic Affairs",
+  
+  "Women's Rights": "Human Rights Issues",
+  "Indigenous Rights": "Human Rights Issues",
+  
+  "Political Violence": "Political Affairs News",
+  "Political Controversy": "Political Affairs News",
+  
+  "Climate": "Climate Natural Disasters",
+  "Natural Disasters": "Climate Natural Disasters",
+  
+  "Mountaineering": "Adventure Endurance Sports",
+  "Ultramarathon Running": "Adventure Endurance Sports",
+  "Para Athletics": "Adventure Endurance Sports",
+  
+  "Sports Roundup": "Major Sports Events",
+  "Major Sporting Events": "Major Sports Events",
+  
+  "Urban Inequality": "Social Economic Issues",
+  "Immigration Policy": "Social Economic Issues",
+  
+  "Australia Security": "Australia News",
+  "Australia Legislation": "Australia News",
+  "Australia": "Australia News",
+  
+  "Regional Security": "Asia Pacific Security",
+  "Arctic Geopolitics": "Arctic Geopolitics",
+  
+  "Science": "Science Technology News",
+  "Technology": "Science Technology News",
+  "Military Technology": "Science Technology News",
+  
+  "Gaza Peace Plan": "Middle East Conflict",
+  "Middle East": "Middle East Conflict",
+  
+  "Media": "Media Entertainment News",
+  "Entertainment": "Media Entertainment News",
+  
+  "History": "History Heritage",
+  
+  "Health": "Health Medical News",
+  
+  "Bangladesh": "Bangladesh Affairs",
+  
+  "China": "China Affairs",
+  
+  "Racism": "Human Rights Issues",
+  
+  "Trade": "Global Trade Policy",
+  
+  "Diplomacy": "International Diplomacy",
+  
+  "Aviation": "Aviation Industry",
+  
+  "Cricket": "Cricket",
+  "Football": "Football",
+  "Ice Hockey": "Ice Hockey",
+  "Chess": "Chess",
+  
+  "US-Iran Relations": "US Iran Relations",
+  "US-India Relations": "US India Relations",
+  "UK-India Relations": "UK India Relations",
+  "India-Russia Relations": "India Russia Relations",
+  "India-China Relations": "India China Relations",
+  "India-Pakistan Relations": "India Pakistan Relations",
+  "UK‑China Relations": "UK China Relations",
+  "NATO Relations": "NATO Relations"
+}
