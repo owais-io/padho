@@ -23,7 +23,8 @@
       "Bash(npx kill-port:*)",
       "Bash(grep:*)",
       "Bash(ls:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
