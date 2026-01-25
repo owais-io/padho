@@ -97,12 +97,19 @@ export async function GET(request: Request) {
     }
 
     // FILTER: Only keep articles that have relevant keywords in the title (case-insensitive)
-    // Keywords are fetched from the database
+    // Keywords are fetched from the database, using word boundary matching to avoid false positives
     const keywords = getKeywordStrings();
 
+    // Create regex patterns with word boundaries for each keyword
+    const keywordPatterns = keywords.map(keyword => {
+      // Escape special regex characters in keyword
+      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`\\b${escaped}\\b`, 'i');
+    });
+
     const filteredArticles = allFetchedArticles.filter((article: any) => {
-      const title = article.webTitle.toLowerCase();
-      return keywords.some(keyword => title.includes(keyword));
+      const title = article.webTitle;
+      return keywordPatterns.some(pattern => pattern.test(title));
     });
 
     console.log(`Filtered ${allFetchedArticles.length} articles down to ${filteredArticles.length} articles with India/Pakistan-related keywords in title`);
