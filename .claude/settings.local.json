@@ -24,7 +24,8 @@
       "Bash(grep:*)",
       "Bash(ls:*)",
       "Bash(head:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
