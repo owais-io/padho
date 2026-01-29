@@ -25,7 +25,9 @@
       "Bash(ls:*)",
       "Bash(head:*)",
       "Bash(tree:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(for:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
