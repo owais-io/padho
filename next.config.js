@@ -7,7 +7,10 @@ const nextConfig = {
   }),
   images: {
     unoptimized: true,
-    domains: ['media.guim.co.uk', 'i.guim.co.uk'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'media.guim.co.uk' },
+      { protocol: 'https', hostname: 'i.guim.co.uk' },
+    ],
   },
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
 }

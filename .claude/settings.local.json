@@ -29,7 +29,17 @@
       "Bash(for:*)",
       "Bash(done)",
       "Bash(git ls-files:*)",
-      "Bash(while read cat)"
+      "Bash(while read cat)",
+      "WebSearch",
+      "Bash(export NVM_DIR=\"$HOME/.nvm\")",
+      "Bash([ -s \"$NVM_DIR/nvm.sh\" ])",
+      "Bash(. \"$NVM_DIR/nvm.sh\")",
+      "Bash(nvm install:*)",
+      "Bash(npx next:*)",
+      "Bash(npm ls:*)",
+      "Bash(git stash:*)",
+      "Bash(nvm use:*)",
+      "Bash(npm audit:*)"
     ],
     "deny": [],
     "ask": []

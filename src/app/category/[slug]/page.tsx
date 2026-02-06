@@ -6,14 +6,15 @@ import { getArticlesByCategory, getCategoryBySlug, getAllCategories } from '@/li
 import { Article } from '@/lib/types';
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = getCategoryBySlug(params.slug);
-  const mdxArticles = getArticlesByCategory(params.slug);
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const { slug } = await params;
+  const category = getCategoryBySlug(slug);
+  const mdxArticles = getArticlesByCategory(slug);
 
   if (!category) {
     notFound();

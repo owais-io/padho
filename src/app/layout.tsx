@@ -37,7 +37,7 @@ export default function RootLayout({
   const remainingCategories = getRemainingCategories(8);
 
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" data-scroll-behavior="smooth">
       <body className="antialiased bg-gray-50 min-h-screen flex flex-col font-sans">
         <Header
           topCategories={topCategories}
